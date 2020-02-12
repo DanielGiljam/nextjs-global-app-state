@@ -6,7 +6,6 @@ import purgeCookies from "./purge-cookies"
 import setCookie from "./set-cookie"
 
 export type CookieConsent = boolean | null
-export type CookieConsentString = "true" | "false" | null | undefined
 
 export interface Cookies {
   [key: string]: string;

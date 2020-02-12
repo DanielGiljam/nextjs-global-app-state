@@ -1,7 +1,7 @@
-import {CookieConsent, CookieConsentString} from "./index"
+import {CookieConsent} from "./index"
 
 function parseCookieConsent(
-    cookieConsentString: CookieConsentString,
+    cookieConsentString?: "true" | "false",
 ): CookieConsent {
   switch (cookieConsentString) {
     case "true":
