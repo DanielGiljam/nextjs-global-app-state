@@ -2,6 +2,7 @@ import __app, {AppInitialProps, AppContext, AppProps} from "next/app"
 import Head from "next/head"
 
 import {IncomingMessage} from "http"
+import {ParsedUrlQuery} from "querystring"
 
 import CssBaseline from "@material-ui/core/CssBaseline"
 import {ThemeProvider, Theme} from "@material-ui/core/styles"
@@ -48,16 +49,24 @@ interface InitialPropsServerSide {
   dehydratedGlobalAppState: DehydratedGlobalAppState;
 }
 
+interface URLParams {
+  lang?: string | null;
+}
+
+interface AppInitialPropsExtended extends AppInitialProps {
+  appProps: InitialPropsServerSide | null;
+  urlParams: URLParams;
+}
+
 // eslint-disable-next-line @typescript-eslint/class-name-casing
-class _app extends __app<{}, {}, AppState> {
-  constructor(props: AppInitialProps & AppProps) {
+class _app extends __app<AppInitialPropsExtended, {}, AppState> {
+  constructor(props: AppInitialPropsExtended & AppProps) {
     super(props)
     extendStringClass()
-    const {
-      strings,
-      themeType,
-      dehydratedGlobalAppState,
-    } = props.pageProps.appProps
+    if (!props.appProps) {
+      throw new Error("FATAL: _app constructor was called without appProps!")
+    }
+    const {strings, themeType, dehydratedGlobalAppState} = props.appProps
     /* NOTE: makeStrings() vs makeTheme() vs makeGlobalAppState():
      * - makeStrings() provides a performance boost from a UX point of view if it runs server-side.
      * - makeTheme() cannot be run server-side due to it's return value not being serializable. (The return value from
@@ -76,7 +85,7 @@ class _app extends __app<{}, {}, AppState> {
   static async getInitialProps({
     Component,
     ctx,
-  }: AppContext): Promise<AppInitialProps> {
+  }: AppContext): Promise<AppInitialPropsExtended> {
     const appProps = ctx.req ?
       await this.getInitialPropsServerSide(ctx.req) :
       null
@@ -84,11 +93,11 @@ class _app extends __app<{}, {}, AppState> {
     if (Component.getInitialProps) {
       pageProps = await Component.getInitialProps(ctx)
     }
-    const urlParams = {lang: ctx.query._lang}
+    const urlParams = await this.getURLParams(ctx.query)
     /* NOTE: The practice of returning everything inside the "pageProps" property of an object
      * is because Next.js expects the return value to look like that (the code would break otherwise).
      */
-    return {pageProps: {pageProps, appProps, urlParams}}
+    return {pageProps, appProps, urlParams}
   }
 
   static async getInitialPropsServerSide(
@@ -127,6 +136,12 @@ class _app extends __app<{}, {}, AppState> {
       strings: await makeStrings(lang),
       themeType,
       dehydratedGlobalAppState,
+    }
+  }
+
+  static async getURLParams(query: ParsedUrlQuery): Promise<URLParams> {
+    return {
+      lang: Array.isArray(query._lang) ? query._lang[0] : query._lang,
     }
   }
 
@@ -183,7 +198,7 @@ class _app extends __app<{}, {}, AppState> {
   }
 
   componentDidUpdate(): void {
-    const urlParams = this.props.pageProps.urlParams
+    const urlParams = this.props.urlParams
     let lang
     if ((lang = urlParams.lang)) {
       urlParams.lang = null
@@ -245,10 +260,7 @@ class _app extends __app<{}, {}, AppState> {
   }
 
   render(): JSX.Element {
-    const {
-      Component,
-      pageProps: {pageProps},
-    } = this.props
+    const {Component, pageProps} = this.props
     const {strings, theme, globalAppState} = this.state
     return (
       <>
