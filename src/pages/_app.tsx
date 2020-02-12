@@ -45,7 +45,7 @@ interface AppState {
 interface InitialPropsServerSide {
   strings: Strings;
   themeType: string;
-  dehydratedAppState: DehydratedGlobalAppState;
+  dehydratedGlobalAppState: DehydratedGlobalAppState;
 }
 
 // eslint-disable-next-line @typescript-eslint/class-name-casing
@@ -53,7 +53,11 @@ class _app extends __app<{}, {}, AppState> {
   constructor(props: AppInitialProps & AppProps) {
     super(props)
     extendStringClass()
-    const {strings, themeType, dehydratedAppState} = props.pageProps.appProps
+    const {
+      strings,
+      themeType,
+      dehydratedGlobalAppState,
+    } = props.pageProps.appProps
     /* NOTE: makeStrings() vs makeTheme() vs makeGlobalAppState():
      * - makeStrings() provides a performance boost from a UX point of view if it runs server-side.
      * - makeTheme() cannot be run server-side due to it's return value not being serializable. (The return value from
@@ -65,7 +69,7 @@ class _app extends __app<{}, {}, AppState> {
     this.state = {
       strings,
       theme: makeTheme(themeType),
-      globalAppState: makeGlobalAppState(dehydratedAppState, this),
+      globalAppState: makeGlobalAppState(dehydratedGlobalAppState, this),
     }
   }
 
@@ -91,7 +95,7 @@ class _app extends __app<{}, {}, AppState> {
       req: IncomingMessage,
   ): Promise<InitialPropsServerSide> {
     // TODO: implement how the default values/dehydrated app state gets here!
-    const dehydratedAppState: DehydratedGlobalAppState = {
+    const dehydratedGlobalAppState: DehydratedGlobalAppState = {
       lang: "en",
       languages: ["en", "sv", "fi"],
       theme: "auto",
@@ -99,16 +103,18 @@ class _app extends __app<{}, {}, AppState> {
       cookieConsent: false,
     }
     const cookies = parseCookies(req.headers["cookie"])
-    const lang = (dehydratedAppState.lang = await getLangServerSide(
-        dehydratedAppState.languages,
+    const lang = (dehydratedGlobalAppState.lang = await getLangServerSide(
+        dehydratedGlobalAppState.languages,
         cookies,
         req.headers["accept-language"],
     ))
-    const themeType = (dehydratedAppState.theme = await getThemeTypeServerSide(
-        dehydratedAppState.themes,
+    const themeType = (dehydratedGlobalAppState.theme = await getThemeTypeServerSide(
+        dehydratedGlobalAppState.themes,
         cookies,
     ))
-    dehydratedAppState.cookieConsent = await getCookieConsentServerSide(cookies)
+    dehydratedGlobalAppState.cookieConsent = await getCookieConsentServerSide(
+        cookies,
+    )
     /* NOTE: makeStrings() vs makeTheme() vs makeGlobalAppState():
      * - makeStrings() provides a performance boost from a UX point of view if it runs server-side.
      * - makeTheme() cannot be run server-side due to it's return value not being serializable. (The return value from
@@ -117,7 +123,11 @@ class _app extends __app<{}, {}, AppState> {
      *   state on the client-side, so as an obvious consequence it cannot be serialized and the function can't run
      *   server-side.
      */
-    return {strings: await makeStrings(lang), themeType, dehydratedAppState}
+    return {
+      strings: await makeStrings(lang),
+      themeType,
+      dehydratedGlobalAppState,
+    }
   }
 
   componentDidMount(): void {
