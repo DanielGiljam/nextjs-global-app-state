@@ -8,7 +8,7 @@ export default {
       storageType === "local" ? localStorage : sessionStorage
     const previousItem = storageReference.getItem(key)
     storageReference.setItem(key, item)
-    if (previousItem === null) {
+    if (previousItem == null) {
       console.log(`${storageType}Storage: an item was set:`, {[key]: item})
     } else {
       console.log(`${storageType}Storage: "${key}" was updated:`, {

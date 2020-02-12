@@ -44,7 +44,7 @@ function parseAcceptLanguageHeader(
   const parsedAcceptLanguagesHeader = []
   const regExp = /([^-,;]+)(?:-([^-,;]+(?:-[^-,;]+)*))?(?:;q=(\d(?:\.\d+)?))?,?/g
   let array
-  while ((array = regExp.exec(acceptLanguageHeader)) !== null) {
+  while ((array = regExp.exec(acceptLanguageHeader)) != null) {
     parsedAcceptLanguagesHeader.push({
       lang: array[1],
       flavor: array[2],
