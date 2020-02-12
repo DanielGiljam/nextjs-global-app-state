@@ -6,15 +6,18 @@ import {CookieConsent} from "util/cookies"
 
 export interface PrecursorGlobalAppState {
   lang: string;
-  languages: Set<string>;
   theme: string;
-  themes: Set<string>;
   cookieConsent: CookieConsent;
 }
 
-export type DehydratedGlobalAppState = PrecursorGlobalAppState
+export interface DehydratedGlobalAppState extends PrecursorGlobalAppState {
+  languages: string[];
+  themes: string[];
+}
 
 export interface GlobalAppState extends PrecursorGlobalAppState {
+  languages: Set<string>;
+  themes: Set<string>;
   setLang(lang: string): void;
   setTheme(themeType: string): void;
   setCookieConsent(cookieConsent: CookieConsent): void;

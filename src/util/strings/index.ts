@@ -67,7 +67,7 @@ export function extendStringClass(): void {
 }
 
 export async function getLangServerSide(
-    supportedLanguages: Set<string>,
+    supportedLanguages: string[],
     cookies: Cookies,
     acceptLanguageHeader?: string,
 ): Promise<string> {
@@ -77,7 +77,7 @@ export async function getLangServerSide(
       lang: cookies.lang,
     })
     const lang = cookies.lang.slice(0, 2) // e.g. "en-US" --> "en"
-    if (supportedLanguages.has(lang)) {
+    if (supportedLanguages.includes(lang)) {
       console.log(`getLangServerSide: returning "${lang}"`)
       return lang
     } else console.warn("getLangServerSide: the cookie was invalid.")
@@ -90,7 +90,7 @@ export async function getLangServerSide(
     )
     console.log("getLangServerSide: accepted languages:", acceptedLanguages)
     for (const {lang} of acceptedLanguages) {
-      if (supportedLanguages.has(lang)) {
+      if (supportedLanguages.includes(lang)) {
         console.log(`getLangServerSide: returning "${lang}"`)
         return lang
       }

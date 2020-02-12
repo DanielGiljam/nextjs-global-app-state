@@ -93,9 +93,9 @@ class _app extends __app<{}, {}, AppState> {
     // TODO: implement how the default values/dehydrated app state gets here!
     const dehydratedAppState: DehydratedGlobalAppState = {
       lang: "en",
-      languages: new Set<string>(["en", "sv", "fi"]),
+      languages: ["en", "sv", "fi"],
       theme: "auto",
-      themes: new Set<string>(["auto", "light", "dark"]),
+      themes: ["auto", "light", "dark"],
       cookieConsent: false,
     }
     const cookies = parseCookies(req.headers["cookie"])

@@ -7,6 +7,8 @@ function makeGlobalAppState(
 ): HydratedGlobalAppState {
   return {
     ...dehydratedAppState,
+    languages: new Set(dehydratedGlobalAppState.languages),
+    themes: new Set(dehydratedGlobalAppState.themes),
     setLang: App.setLang.bind(App),
     setTheme: App.setTheme.bind(App),
     setCookieConsent: App.setCookieConsent.bind(App),

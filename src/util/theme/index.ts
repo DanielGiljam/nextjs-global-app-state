@@ -3,7 +3,7 @@ import setCookie from "util/cookies/set-cookie"
 import webStorage from "util/local-storage"
 
 export async function getThemeTypeServerSide(
-    supportedThemeTypes: Set<string>,
+    supportedThemeTypes: string[],
     cookies: Cookies,
 ): Promise<string> {
   console.log(
@@ -15,7 +15,7 @@ export async function getThemeTypeServerSide(
     console.log("getThemeTypeServerSide: found a theme type cookie:", {
       "theme-type": cookie,
     })
-    if (supportedThemeTypes.has(cookie)) {
+    if (supportedThemeTypes.includes(cookie)) {
       console.log(`getThemeTypeServerSide: returning "${cookie}"`)
       return cookie
     } else console.warn("getThemeTypeServerSide: the cookie was invalid.")
