@@ -1,6 +1,6 @@
 import fetch from "isomorphic-unfetch"
 
-import {Strings} from "contexts/strings"
+import {Strings} from "../../contexts/strings"
 
 export default async function stringsFetcher(lang: string): Promise<Strings> {
   return await fetch(

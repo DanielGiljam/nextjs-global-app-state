@@ -1,4 +1,4 @@
-import _app from "pages/_app"
+import _app from "../../pages/_app"
 import {DehydratedGlobalAppState, HydratedGlobalAppState} from "./index"
 
 function makeGlobalAppState(

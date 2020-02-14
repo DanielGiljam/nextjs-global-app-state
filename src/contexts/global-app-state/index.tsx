@@ -1,8 +1,8 @@
 import PropTypes from "prop-types"
 
-import {createContext, Context} from "react"
+import React, {createContext, Context} from "react"
 
-import {CookieConsent} from "util/cookies"
+import {CookieConsent} from "../../util/cookies"
 
 export interface PrecursorGlobalAppState {
   lang: string;

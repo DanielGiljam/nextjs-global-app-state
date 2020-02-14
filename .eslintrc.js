@@ -32,7 +32,6 @@ module.exports = {
     "react/jsx-curly-brace-presence": [1, {props: "always", children: "never"}],
     "max-len": 0,
     "require-jsdoc": 0,
-    "react/react-in-jsx-scope": 0,
     "@typescript-eslint/ban-ts-ignore": 0,
   },
 }

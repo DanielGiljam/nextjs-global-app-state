@@ -7,12 +7,16 @@
   "license": "MIT",
   "private": true,
   "author": "Daniel Giljam (https://github.com/DanielGiljam)",
+  "files": [
+    "lib/"
+  ],
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "repository": "github:DanielGiljam/nextjs-global-app-state",
   "scripts": {
     "dev": "next dev",
-    "build": "tsc -p tsconfig.build.json"
+    "build": "rm -rf lib && tsc -p tsconfig.build.json",
+    "prepare": "npm run build"
   },
   "devDependencies": {
     "@material-ui/core": "^4.9.2",

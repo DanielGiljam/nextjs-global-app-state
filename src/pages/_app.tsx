@@ -1,3 +1,5 @@
+import React from "react"
+
 import __app, {AppInitialProps, AppContext, AppProps} from "next/app"
 import Head from "next/head"
 
@@ -6,36 +8,36 @@ import {ParsedUrlQuery} from "querystring"
 
 import CssBaseline from "@material-ui/core/CssBaseline"
 import {ThemeProvider, Theme} from "@material-ui/core/styles"
-import {StringsProvider, Strings} from "contexts/strings"
+import {StringsProvider, Strings} from "../contexts/strings"
 import {
   GlobalAppStateProvider,
   DehydratedGlobalAppState,
   GlobalAppState,
-} from "contexts/global-app-state"
+} from "../contexts/global-app-state"
 
-import makeStrings from "contexts/strings/makeStrings"
-import makeTheme from "contexts/theme/makeTheme"
-import makeGlobalAppState from "contexts/global-app-state/makeGlobalAppState"
+import makeStrings from "../contexts/strings/makeStrings"
+import makeTheme from "../contexts/theme/makeTheme"
+import makeGlobalAppState from "../contexts/global-app-state/makeGlobalAppState"
 
 import {
   getLangServerSide,
   getLangClientSide,
   setLang,
   extendStringClass,
-} from "util/strings"
+} from "../util/strings"
 import {
   getThemeTypeServerSide,
   getThemeTypeClientSide,
   setThemeType,
-} from "util/theme"
+} from "../util/theme"
 import {
   getCookieConsentServerSide,
   getCookieConsentClientSide,
   setCookieConsent,
   setCookies,
-} from "util/cookies"
+} from "../util/cookies"
 
-import parseCookies from "util/cookies/parse-cookies"
+import parseCookies from "../util/cookies/parse-cookies"
 
 interface AppState {
   strings: Strings;

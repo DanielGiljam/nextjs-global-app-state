@@ -1,4 +1,4 @@
-import {Strings} from "contexts/strings"
+import {Strings} from "../../contexts/strings"
 
 /* Using @ts-ignore in several places throughout this file
  * in order to suppress the compilation error TS7053:

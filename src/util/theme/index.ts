@@ -1,6 +1,6 @@
-import {Cookies, CookieConsent} from "util/cookies"
-import setCookie from "util/cookies/set-cookie"
-import webStorage from "util/local-storage"
+import {Cookies, CookieConsent} from "../cookies"
+import setCookie from "../cookies/set-cookie"
+import webStorage from "../local-storage"
 
 export async function getThemeTypeServerSide(
     supportedThemeTypes: string[],

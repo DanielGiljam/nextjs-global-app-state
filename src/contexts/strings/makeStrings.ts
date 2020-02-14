@@ -1,5 +1,5 @@
-import stringsFetcher from "util/strings/fetcher"
-import mergeResources from "util/strings/merge-resources"
+import stringsFetcher from "../../util/strings/fetcher"
+import mergeResources from "../../util/strings/merge-resources"
 
 import {Strings} from "./index"
 

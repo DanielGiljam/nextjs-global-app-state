@@ -1,6 +1,6 @@
-import {Cookies, CookieConsent} from "util/cookies"
-import setCookie from "util/cookies/set-cookie"
-import webStorage from "util/local-storage"
+import {Cookies, CookieConsent} from "../cookies"
+import setCookie from "../cookies/set-cookie"
+import webStorage from "../local-storage"
 
 function lcFirst(this: string): string {
   // eslint-disable-next-line no-invalid-this

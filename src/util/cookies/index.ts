@@ -1,4 +1,4 @@
-import webStorage from "util/local-storage"
+import webStorage from "../local-storage"
 
 import parseCookieConsent from "./parse-cookie-consent"
 import parseCookies from "./parse-cookies"
