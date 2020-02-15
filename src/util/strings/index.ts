@@ -147,7 +147,7 @@ export async function getLangClientSide(
   return lang
 }
 
-export async function setLang(
+export async function setLangClientSide(
     supportedLanguages: Set<string>,
     cookieConsent: CookieConsent,
     lang: string,

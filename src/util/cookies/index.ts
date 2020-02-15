@@ -36,7 +36,9 @@ export async function getCookieConsentClientSide(): Promise<CookieConsent> {
   return null
 }
 
-export async function setCookieConsent(cookieConsent: boolean): Promise<void> {
+export async function setCookieConsentClientSide(
+    cookieConsent: boolean,
+): Promise<void> {
   console.log(
       `setCookieConsent: setting cookie consent to "${cookieConsent}"...`,
   )

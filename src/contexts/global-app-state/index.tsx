@@ -15,15 +15,16 @@ export interface DehydratedGlobalAppState extends PrecursorGlobalAppState {
   themes: string[];
 }
 
-export interface GlobalAppState extends PrecursorGlobalAppState {
+export interface IntermediateGlobalAppState extends PrecursorGlobalAppState {
   languages: Set<string>;
   themes: Set<string>;
-  setLang(lang: string): void;
-  setTheme(themeType: string): void;
-  setCookieConsent(cookieConsent: CookieConsent): void;
 }
 
-export type HydratedGlobalAppState = GlobalAppState
+export interface GlobalAppState extends IntermediateGlobalAppState {
+  setLang(lang: string): void;
+  setTheme(themeType: string): void;
+  setCookieConsent(cookieConsent: boolean): void;
+}
 
 export let GlobalAppStateContext: Context<GlobalAppState>
 

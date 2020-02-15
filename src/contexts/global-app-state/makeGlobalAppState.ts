@@ -1,17 +1,12 @@
-import _app from "../../pages/_app"
-import {DehydratedGlobalAppState, HydratedGlobalAppState} from "./index"
+import {DehydratedGlobalAppState, IntermediateGlobalAppState} from "./index"
 
 function makeGlobalAppState(
     dehydratedGlobalAppState: DehydratedGlobalAppState,
-    App: _app,
-): HydratedGlobalAppState {
+): IntermediateGlobalAppState {
   return {
     ...dehydratedGlobalAppState,
-    languages: new Set(dehydratedGlobalAppState.languages),
-    themes: new Set(dehydratedGlobalAppState.themes),
-    setLang: App.setLang.bind(App),
-    setTheme: App.setTheme.bind(App),
-    setCookieConsent: App.setCookieConsent.bind(App),
+    languages: new Set<string>(dehydratedGlobalAppState.languages),
+    themes: new Set<string>(dehydratedGlobalAppState.themes),
   }
 }
 

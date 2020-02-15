@@ -48,7 +48,7 @@ export async function getThemeTypeClientSide(): Promise<
   return "auto"
 }
 
-export async function setThemeType(
+export async function setThemeTypeClientSide(
     supportedThemeTypes: Set<string>,
     cookieConsent: CookieConsent,
     themeType: string,
