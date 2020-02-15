@@ -15,21 +15,22 @@ export interface DehydratedGlobalAppState extends PrecursorGlobalAppState {
   themes: string[];
 }
 
-export interface IntermediateGlobalAppState extends PrecursorGlobalAppState {
+export interface GlobalAppState extends PrecursorGlobalAppState {
   languages: Set<string>;
   themes: Set<string>;
 }
 
-export interface GlobalAppState extends IntermediateGlobalAppState {
+export interface GlobalAppStateSetters {
   setLang(lang: string): void;
   setTheme(themeType: string): void;
   setCookieConsent(cookieConsent: boolean): void;
 }
 
-export let GlobalAppStateContext: Context<GlobalAppState>
+export let GlobalAppStateContext: Context<GlobalAppState &
+  GlobalAppStateSetters>
 
 interface GlobalAppStateProviderProps {
-  globalAppState: GlobalAppState;
+  globalAppState: GlobalAppState & GlobalAppStateSetters;
   children: React.ReactNode;
 }
 

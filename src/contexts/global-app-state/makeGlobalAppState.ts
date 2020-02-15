@@ -1,8 +1,8 @@
-import {DehydratedGlobalAppState, IntermediateGlobalAppState} from "./index"
+import {DehydratedGlobalAppState, GlobalAppState} from "./index"
 
 function makeGlobalAppState(
     dehydratedGlobalAppState: DehydratedGlobalAppState,
-): IntermediateGlobalAppState {
+): GlobalAppState {
   return {
     ...dehydratedGlobalAppState,
     languages: new Set<string>(dehydratedGlobalAppState.languages),
