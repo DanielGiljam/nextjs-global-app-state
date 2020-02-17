@@ -39,6 +39,10 @@ import {
 
 import parseCookies from "../util/cookies/parse-cookies"
 
+interface AppFactoryOptions {
+  Wrapper?: typeof React.Component;
+}
+
 interface App {
   (props: AppInitialPropsExtended & AppProps): JSX.Element;
   getInitialProps({
@@ -72,7 +76,7 @@ interface AppInitialPropsExtended extends AppInitialProps {
   urlParams: URLParams;
 }
 
-function AppFactory(): App {
+function AppFactory({Wrapper}: AppFactoryOptions = {}): App {
   const App = function App(
       props: AppInitialPropsExtended & AppProps,
   ): JSX.Element {
@@ -221,7 +225,13 @@ function AppFactory(): App {
                 setCookieConsent,
               }}
             >
-              <Component {...pageProps} />
+              {Wrapper ? (
+                <Wrapper>
+                  <Component {...pageProps} />
+                </Wrapper>
+              ) : (
+                <Component {...pageProps} />
+              )}
             </GlobalAppStateProvider>
           </StringsProvider>
         </ThemeProvider>

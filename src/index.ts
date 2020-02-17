@@ -1,3 +1,3 @@
-import App from "./pages/_app"
+import appFactory from "./app-factory"
 
-export default App
+export default appFactory

@@ -20,11 +20,6 @@
     "baseUrl": "./src",
     "removeComments": true
   },
-  "exclude": [
-    "node_modules",
-    "src/components",
-    "src/pages/_document.tsx",
-    "src/pages/index.tsx"
-  ],
+  "exclude": ["node_modules", "src/components", "src/pages"],
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"]
 }

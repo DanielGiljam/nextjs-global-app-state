@@ -1,3 +1,3 @@
-import AppFactory from "../app-factory"
+import appFactory from "../app-factory"
 
-export default AppFactory()
+export default appFactory()
