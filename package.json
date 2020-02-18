@@ -1,7 +1,7 @@
 {
   "name": "nextjs-global-app-state",
   "version": "0.0.0",
-  "description": "A custom <App> which implements a robust, full stack solution for maintaining consistent state from start to finish across the entire website experience.",
+  "description": "A custom `App` component which implements a robust, full stack solution for maintaining the kind of state that span the entire website.",
   "homepage": "https://github.com/DanielGiljam/nextjs-global-app-state#readme",
   "bugs": "https://github.com/DanielGiljam/nextjs-global-app-state/issues",
   "license": "MIT",
