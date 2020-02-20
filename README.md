@@ -1,8 +1,8 @@
 # Next.js Global App State
 
-A custom `App` component which implements a robust, full stack solution for maintaining the kind of state that span the entire website. _([Read more about custom App component's in Next.js here!](https://nextjs.org/docs/advanced-features/custom-app "nextjs.org/docs/advanced-features/custom-app"))_
+A custom `App` component which implements a robust, full stack solution for maintaining state across an entire website experience. _([Read more about custom App component's in Next.js here!](https://nextjs.org/docs/advanced-features/custom-app "nextjs.org/docs/advanced-features/custom-app"))_
 
-Examples of state that needs to span the entire website:
+Examples of state that span across an entire website experience:
 
 - Language
 - Theme
@@ -11,17 +11,15 @@ Examples of state that needs to span the entire website:
 
 ## Library contents
 
-- Factory for creating your customized version of this `App` component with the state solution built in
-- Building blocks for basic states in websites, such as language, theme (more may be added in the future)
+- `App` component factory
+- Building blocks for basic state, such as language, theme (more may be added in the future)
 - API for creating your own states
-
-The library is written in TypeScript and has custom types, so you can enjoy the benefits of code completion and IntelliSense when using the library.
 
 ## Basic Usage
 
-Add `nextjs-global-app-state` as a dependency to your Next.js project.
+Add [`nextjs-global-app-state`](https://www.npmjs.com/package/nextjs-global-app-state "www.npmjs.com/package/nextjs-global-app-state") as a dependency to your Next.js project.
 
-```
+```bash
 # Installs the package adds it as a dependency in package.json
 npm i -s nextjs-global-app-state
 

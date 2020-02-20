@@ -3,12 +3,15 @@ import mergeResources from "../../util/strings/merge-resources"
 
 import {Strings} from "./index"
 
-async function makeStrings(lang: string): Promise<Strings> {
+async function makeStrings(
+    lang: string,
+    stringResourcesPath: string,
+): Promise<Strings> {
   console.log("makeStrings: fetching strings for \"en\"...")
-  const en = await stringsFetcher("en")
+  const en = await stringsFetcher("en", stringResourcesPath)
   if (lang === "en") return en
   console.log(`makeStrings: fetching strings for "${lang}"...`)
-  const stringResources = await stringsFetcher(lang)
+  const stringResources = await stringsFetcher(lang, stringResourcesPath)
   return mergeResources(en, stringResources, "stringResources")
 }
 

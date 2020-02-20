@@ -40,6 +40,7 @@ import {
 import parseCookies from "../util/cookies/parse-cookies"
 
 interface AppFactoryOptions {
+  stringResourcesPath: string;
   Wrapper?: typeof React.Component;
 }
 
@@ -76,7 +77,9 @@ interface AppInitialPropsExtended extends AppInitialProps {
   urlParams: URLParams;
 }
 
-function AppFactory({Wrapper}: AppFactoryOptions = {}): App {
+function AppFactory(
+    {stringResourcesPath, Wrapper}: AppFactoryOptions = {stringResourcesPath: "/"},
+): App {
   const App = function App(
       props: AppInitialPropsExtended & AppProps,
   ): JSX.Element {
@@ -100,7 +103,7 @@ function AppFactory({Wrapper}: AppFactoryOptions = {}): App {
     function setLang(lang: string): void {
       const {languages: supportedLanguages, cookieConsent} = globalAppState
       setLangClientSide(supportedLanguages, cookieConsent, lang)
-          .then(() => makeStrings(lang))
+          .then(() => makeStrings(lang, stringResourcesPath))
           .then((strings) =>
             setState((prevState) => ({
               ...prevState,
@@ -161,7 +164,7 @@ function AppFactory({Wrapper}: AppFactoryOptions = {}): App {
       getLangClientSide(supportedLanguages, serverSideLang)
           .then((lang) => {
             if (lang !== serverSideLang) {
-              return makeStrings(lang).then((strings) =>
+              return makeStrings(lang, stringResourcesPath).then((strings) =>
                 setState((prevState) => ({
                   ...prevState,
                   strings,
@@ -279,7 +282,7 @@ function AppFactory({Wrapper}: AppFactoryOptions = {}): App {
         cookies,
     )
     return {
-      strings: await makeStrings(lang),
+      strings: await makeStrings(lang, stringResourcesPath),
       themeType,
       dehydratedGlobalAppState,
     }

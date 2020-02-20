@@ -1,14 +1,15 @@
 {
   "name": "nextjs-global-app-state",
-  "version": "0.0.0",
-  "description": "A custom `App` component which implements a robust, full stack solution for maintaining the kind of state that span the entire website.",
+  "version": "1.0.0",
+  "description": "A custom `App` component which implements a robust, full stack solution for maintaining state across an entire website experience.",
   "homepage": "https://github.com/DanielGiljam/nextjs-global-app-state#readme",
   "bugs": "https://github.com/DanielGiljam/nextjs-global-app-state/issues",
   "license": "MIT",
-  "private": true,
   "author": "Daniel Giljam (https://github.com/DanielGiljam)",
   "files": [
-    "lib/"
+    "lib/",
+    "useGlobalAppState.js",
+    "useStrings.js"
   ],
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
