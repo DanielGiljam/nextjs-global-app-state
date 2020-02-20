@@ -17,8 +17,6 @@ Examples of state that needs to span the entire website:
 
 The library is written in TypeScript and has custom types, so you can enjoy the benefits of code completion and IntelliSense when using the library.
 
-The library supports tree shaking. Import only the parts you need and minimize the bundle size of whatever you're working on.
-
 ## Basic Usage
 
 Add `nextjs-global-app-state` as a dependency to your Next.js project.
