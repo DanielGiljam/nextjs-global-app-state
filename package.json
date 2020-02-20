@@ -5,11 +5,10 @@
   "homepage": "https://github.com/DanielGiljam/nextjs-global-app-state#readme",
   "bugs": "https://github.com/DanielGiljam/nextjs-global-app-state/issues",
   "license": "MIT",
+  "private": true,
   "author": "Daniel Giljam (https://github.com/DanielGiljam)",
   "files": [
-    "lib/",
-    "useGlobalAppState.js",
-    "useStrings.js"
+    "lib/"
   ],
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
