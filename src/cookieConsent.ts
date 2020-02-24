@@ -1,9 +1,9 @@
 import {IncomingMessage} from "http"
 
-import {Cookies, CookieConsent} from "../util/cookies"
-import {GlobalAppStatePropertyParameters} from "../GlobalAppStateProperty"
+import {Cookies, CookieConsent} from "./util/cookies"
+import {GlobalAppStatePropertyParameters} from "./appFactory/GlobalAppStateProperty"
 
-import webStorage from "../util/web-storage"
+import webStorage from "./util/web-storage"
 
 async function getCookieConsentServerSide(
     values: Set<CookieConsent>,

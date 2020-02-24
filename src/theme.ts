@@ -1,16 +1,16 @@
-import {Provider} from "react"
-
 import {IncomingMessage} from "http"
+
+import {Provider} from "react"
 
 import responsiveFontSizes from "@material-ui/core/styles/responsiveFontSizes"
 import createMuiTheme from "@material-ui/core/styles/createMuiTheme"
 
 import {ThemeProvider, Theme} from "@material-ui/core"
-import {Cookies, CookieConsent} from "util/cookies"
-import {GlobalAppStatePropertyParameters} from "../GlobalAppStateProperty"
+import {Cookies, CookieConsent} from "./util/cookies"
+import {GlobalAppStatePropertyParameters} from "./appFactory/GlobalAppStateProperty"
 
-import webStorage from "util/web-storage"
-import setCookie from "util/cookies/set-cookie"
+import webStorage from "./util/web-storage"
+import setCookie from "./util/cookies/set-cookie"
 
 async function getThemeTypeServerSide(
     supportedThemeTypes: Set<string>,

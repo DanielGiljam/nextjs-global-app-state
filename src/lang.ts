@@ -1,13 +1,13 @@
 import {IncomingMessage} from "http"
 
-import webStorage from "util/web-storage"
-import setCookie from "../util/cookies/set-cookie"
+import makeStrings from "./util/strings/makeStrings"
 
-import makeStrings from "../util/strings/makeStrings"
+import {StringsContext, Strings} from "./util/strings"
+import {Cookies, CookieConsent} from "./util/cookies"
+import {GlobalAppStatePropertyParameters} from "./appFactory/GlobalAppStateProperty"
 
-import {StringsContext, Strings} from "../util/strings"
-import {Cookies, CookieConsent} from "../util/cookies"
-import {GlobalAppStatePropertyParameters} from "../GlobalAppStateProperty"
+import webStorage from "./util/web-storage"
+import setCookie from "./util/cookies/set-cookie"
 
 // TODO: see if "q" can be parsed further in parseAcceptLanguageHeader()!
 function parseAcceptLanguageHeader(

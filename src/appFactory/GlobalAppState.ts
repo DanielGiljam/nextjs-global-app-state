@@ -4,7 +4,7 @@ import GlobalAppStateProperty, {
   GlobalAppStatePropertyParameters,
   DehydratedGlobalAppStateProperty,
   HydratedGlobalAppStatePropertyType,
-} from "GlobalAppStateProperty"
+} from "./GlobalAppStateProperty"
 
 import parseCookies from "../util/cookies/parse-cookies"
 
