@@ -1,14 +1,10 @@
-import {IncomingMessage} from "http"
-
 import {Cookies, CookieConsent} from "./util/cookies"
-import {GlobalAppStatePropertyParameters} from "./appFactory/GlobalAppStateProperty"
 
 import webStorage from "./util/web-storage"
 
 async function getCookieConsentServerSide(
-    values: Set<CookieConsent>,
+    _values: Set<CookieConsent>,
     cookies: Cookies,
-    req: IncomingMessage,
 ): Promise<boolean> {
   return cookies["cookie-consent"] === "true"
 }
@@ -26,10 +22,7 @@ function parseCookieConsent(
   }
 }
 
-async function getCookieConsentClientSide(
-    values: Set<CookieConsent>,
-    existingValue: CookieConsent,
-): Promise<CookieConsent> {
+async function getCookieConsentClientSide(): Promise<CookieConsent> {
   // (If environment isn't client's, throw an error)
   if (typeof window === "undefined") {
     throw new Error(
@@ -49,27 +42,24 @@ async function getCookieConsentClientSide(
 }
 
 async function setCookieConsentClientSide(
-    values: Set<CookieConsent>,
-    cookieConsent: CookieConsent,
+    _values: Set<CookieConsent>,
+    _cookieConsent: CookieConsent,
     value: CookieConsent,
 ): Promise<void> {
-  console.log(
-      `setCookieConsent: setting cookie consent to "${cookieConsent}"...`,
+  console.log(`setCookieConsent: setting cookie consent to "${value}"...`)
+  webStorage.set(
+      "cookieConsent",
+    typeof value === "boolean" ? value.toString() : "null",
   )
-  webStorage.set("cookieConsent", (cookieConsent as boolean).toString())
 }
 
-function cookieConsent(): GlobalAppStatePropertyParameters<CookieConsent> {
-  return {
-    key: "cookieConsent",
-    defaultValue: false,
-    defaultValues: new Set<CookieConsent>([true, false, null]),
-    initializeValue: {
-      serverSide: getCookieConsentServerSide,
-      clientSide: getCookieConsentClientSide,
-    },
-    setValue: setCookieConsentClientSide,
-  }
+export default {
+  key: "cookieConsent",
+  defaultValue: false,
+  defaultValues: new Set<CookieConsent>([true, false, null]),
+  initializeValue: {
+    serverSide: getCookieConsentServerSide,
+    clientSide: getCookieConsentClientSide,
+  },
+  setValue: setCookieConsentClientSide,
 }
-
-export default cookieConsent

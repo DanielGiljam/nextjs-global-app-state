@@ -16,20 +16,20 @@ export interface GlobalAppStatePropertyParameters<
   defaultValues: Set<T>;
   initializeValue?: {
     serverSide?(
-      values: Set<T>,
-      cookies: Cookies,
-      req: IncomingMessage
+      values?: Set<T>,
+      cookies?: Cookies,
+      req?: IncomingMessage
     ): Promise<T>;
-    clientSide?(values: Set<T>, existingValue: T): Promise<T>;
+    clientSide?(values?: Set<T>, existingValue?: T): Promise<T>;
   };
   getValues?: {
     serverSide?(): Promise<Set<T>>;
     clientSide?(): Promise<Set<T>>;
   };
   setValue?(
-    values: Set<T>,
-    cookieConsent: CookieConsent,
-    value: T
+    values?: Set<T>,
+    cookieConsent?: CookieConsent,
+    value?: T
   ): Promise<void>;
   isSensitiveInformation?: boolean;
   controlContext?: {
@@ -66,20 +66,20 @@ class GlobalAppStateProperty<T = GlobalAppStatePropertyValue, C = T> {
   private readonly defaultValues: Set<T>
   private readonly initializeValue?: {
     serverSide?(
-      values: Set<T>,
-      cookies: Cookies,
-      req: IncomingMessage
+      values?: Set<T>,
+      cookies?: Cookies,
+      req?: IncomingMessage
     ): Promise<T>;
-    clientSide?(values: Set<T>, existingValue: T): Promise<T>;
+    clientSide?(values?: Set<T>, existingValue?: T): Promise<T>;
   }
   private readonly getValues?: {
     serverSide?(): Promise<Set<T>>;
     clientSide?(): Promise<Set<T>>;
   }
   private setValue?(
-    values: Set<T>,
-    cookieConsent: CookieConsent,
-    value: T
+    values?: Set<T>,
+    cookieConsent?: CookieConsent,
+    value?: T
   ): Promise<void>
   private readonly isSensitiveInformation?: boolean
   private readonly controlContext?: {
@@ -169,9 +169,9 @@ class GlobalAppStateProperty<T = GlobalAppStatePropertyValue, C = T> {
       return this.setValue
     }
     return async (
-      values: Set<T>,
-      cookieConsent: CookieConsent,
-      value: T,
+      values?: Set<T>,
+      cookieConsent?: CookieConsent,
+      value?: T,
     ): Promise<void> => {
       // TODO: implement GlobalAppStateProperty setters!
       console.log("GlobalAppStateProperty setters aren't implemented yet.")

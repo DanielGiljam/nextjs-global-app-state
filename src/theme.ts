@@ -1,5 +1,3 @@
-import {IncomingMessage} from "http"
-
 import {Provider} from "react"
 
 import responsiveFontSizes from "@material-ui/core/styles/responsiveFontSizes"
@@ -21,7 +19,6 @@ function isThemeType(
 async function getThemeTypeServerSide(
     supportedThemeTypes: Set<ThemeType>,
     cookies: Cookies,
-    req: IncomingMessage,
 ): Promise<ThemeType> {
   console.log(
       "getThemeTypeServerSide: supported theme types:",
@@ -43,10 +40,7 @@ async function getThemeTypeServerSide(
   return "light"
 }
 
-async function getThemeTypeClientSide(
-    supportedThemeTypes: Set<ThemeType>,
-    serverSideThemeType: ThemeType,
-): Promise<ThemeType> {
+async function getThemeTypeClientSide(): Promise<ThemeType> {
   // (If environment isn't client's, throw an error)
   if (typeof window === "undefined") {
     throw new Error(
