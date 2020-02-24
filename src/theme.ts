@@ -7,16 +7,22 @@ import createMuiTheme from "@material-ui/core/styles/createMuiTheme"
 
 import {ThemeProvider, Theme} from "@material-ui/core"
 import {Cookies, CookieConsent} from "./util/cookies"
-import {GlobalAppStatePropertyParameters} from "./appFactory/GlobalAppStateProperty"
 
 import webStorage from "./util/web-storage"
 import setCookie from "./util/cookies/set-cookie"
 
+function isThemeType(
+    supportedThemeTypes: Set<ThemeType>,
+    themeType: string,
+): themeType is ThemeType {
+  return supportedThemeTypes.has(themeType as ThemeType)
+}
+
 async function getThemeTypeServerSide(
-    supportedThemeTypes: Set<string>,
+    supportedThemeTypes: Set<ThemeType>,
     cookies: Cookies,
     req: IncomingMessage,
-): Promise<string> {
+): Promise<ThemeType> {
   console.log(
       "getThemeTypeServerSide: supported theme types:",
       supportedThemeTypes,
@@ -26,7 +32,7 @@ async function getThemeTypeServerSide(
     console.log("getThemeTypeServerSide: found a theme type cookie:", {
       "theme-type": cookie,
     })
-    if (supportedThemeTypes.has(cookie)) {
+    if (isThemeType(supportedThemeTypes, cookie)) {
       console.log(`getThemeTypeServerSide: returning "${cookie}"`)
       return cookie
     } else console.warn("getThemeTypeServerSide: the cookie was invalid.")
@@ -38,9 +44,9 @@ async function getThemeTypeServerSide(
 }
 
 async function getThemeTypeClientSide(
-    supportedThemeTypes: Set<string>,
-    serverSideThemeType: string,
-): Promise<"auto" | "light" | "dark"> {
+    supportedThemeTypes: Set<ThemeType>,
+    serverSideThemeType: ThemeType,
+): Promise<ThemeType> {
   // (If environment isn't client's, throw an error)
   if (typeof window === "undefined") {
     throw new Error(
@@ -61,9 +67,9 @@ async function getThemeTypeClientSide(
 }
 
 async function setThemeTypeClientSide(
-    supportedThemeTypes: Set<string>,
+    supportedThemeTypes: Set<ThemeType>,
     cookieConsent: CookieConsent,
-    themeType: string,
+    themeType: ThemeType,
 ): Promise<void> {
   if (!supportedThemeTypes.has(themeType)) {
     throw new TypeError(
@@ -79,10 +85,13 @@ async function setThemeTypeClientSide(
 }
 
 function getThemeTypeAuto(): "light" | "dark" {
+  // TODO: implement theme-sniffing function!
   return "light"
 }
 
-async function makeTheme(themeType: string): Promise<Theme> {
+export type ThemeType = "auto" | "light" | "dark"
+
+async function makeTheme(themeType: ThemeType): Promise<Theme> {
   return responsiveFontSizes(
       createMuiTheme({
         palette: {
@@ -95,21 +104,18 @@ async function makeTheme(themeType: string): Promise<Theme> {
   )
 }
 
-function theme(): GlobalAppStatePropertyParameters<string, Theme> {
-  return {
-    key: "theme",
-    defaultValue: "auto",
-    defaultValues: new Set<string>(["auto", "light", "dark"]),
-    initializeValue: {
-      serverSide: getThemeTypeServerSide,
-      clientSide: getThemeTypeClientSide,
-    },
-    setValue: setThemeTypeClientSide,
-    controlContext: {
-      transformValue: async (theme: string): Promise<Theme> => makeTheme(theme),
-      ContextProvider: (ThemeProvider as unknown) as Provider<Theme>,
-    },
-  }
+export default {
+  key: "theme",
+  defaultValue: "auto",
+  defaultValues: new Set<ThemeType>(["auto", "light", "dark"]),
+  initializeValue: {
+    serverSide: getThemeTypeServerSide,
+    clientSide: getThemeTypeClientSide,
+  },
+  setValue: setThemeTypeClientSide,
+  controlContext: {
+    transformValue: async (theme: ThemeType): Promise<Theme> =>
+      makeTheme(theme),
+    ContextProvider: (ThemeProvider as unknown) as Provider<Theme>,
+  },
 }
-
-export default theme
