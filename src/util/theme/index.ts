@@ -1,10 +1,13 @@
+import {IncomingMessage} from "http"
+
 import {Cookies, CookieConsent} from "../cookies"
 import setCookie from "../cookies/set-cookie"
-import webStorage from "../local-storage"
+import webStorage from "../web-storage"
 
 export async function getThemeTypeServerSide(
-    supportedThemeTypes: string[],
+    supportedThemeTypes: Set<string>,
     cookies: Cookies,
+    req: IncomingMessage,
 ): Promise<string> {
   console.log(
       "getThemeTypeServerSide: supported theme types:",
@@ -15,7 +18,7 @@ export async function getThemeTypeServerSide(
     console.log("getThemeTypeServerSide: found a theme type cookie:", {
       "theme-type": cookie,
     })
-    if (supportedThemeTypes.includes(cookie)) {
+    if (supportedThemeTypes.has(cookie)) {
       console.log(`getThemeTypeServerSide: returning "${cookie}"`)
       return cookie
     } else console.warn("getThemeTypeServerSide: the cookie was invalid.")
@@ -26,9 +29,10 @@ export async function getThemeTypeServerSide(
   return "light"
 }
 
-export async function getThemeTypeClientSide(): Promise<
-  "auto" | "light" | "dark"
-  > {
+export async function getThemeTypeClientSide(
+    supportedThemeTypes: Set<string>,
+    serverSideThemeType: string,
+): Promise<"auto" | "light" | "dark"> {
   // (If environment isn't client's, throw an error)
   if (typeof window === "undefined") {
     throw new Error(

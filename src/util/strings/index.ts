@@ -1,6 +1,8 @@
+import {IncomingMessage} from "http"
+
 import {Cookies, CookieConsent} from "../cookies"
 import setCookie from "../cookies/set-cookie"
-import webStorage from "../local-storage"
+import webStorage from "../web-storage"
 
 function lcFirst(this: string): string {
   // eslint-disable-next-line no-invalid-this
@@ -67,17 +69,18 @@ export function extendStringClass(): void {
 }
 
 export async function getLangServerSide(
-    supportedLanguages: string[],
+    supportedLanguages: Set<string>,
     cookies: Cookies,
-    acceptLanguageHeader?: string,
+    req: IncomingMessage,
 ): Promise<string> {
+  const acceptLanguageHeader = req.headers["accept-language"]
   console.log("getLangServerSide: supported languages:", supportedLanguages)
   if (cookies.lang) {
     console.log("getLangServerSide: found a language cookie:", {
       lang: cookies.lang,
     })
     const lang = cookies.lang.slice(0, 2) // e.g. "en-US" --> "en"
-    if (supportedLanguages.includes(lang)) {
+    if (supportedLanguages.has(lang)) {
       console.log(`getLangServerSide: returning "${lang}"`)
       return lang
     } else console.warn("getLangServerSide: the cookie was invalid.")
@@ -90,7 +93,7 @@ export async function getLangServerSide(
     )
     console.log("getLangServerSide: accepted languages:", acceptedLanguages)
     for (const {lang} of acceptedLanguages) {
-      if (supportedLanguages.includes(lang)) {
+      if (supportedLanguages.has(lang)) {
         console.log(`getLangServerSide: returning "${lang}"`)
         return lang
       }
