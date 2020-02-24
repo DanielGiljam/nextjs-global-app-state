@@ -1,4 +1,4 @@
-import {Strings} from "../../contexts/strings"
+import {Strings} from "./index"
 
 /* Using @ts-ignore in several places throughout this file
  * in order to suppress the compilation error TS7053:
@@ -135,4 +135,16 @@ function mergeResources(
   return resources
 }
 
-export default mergeResources
+async function makeStrings(
+    lang: string,
+    stringsFetcher: (lang: string) => Promise<Strings>,
+): Promise<Strings> {
+  console.log("makeStrings: fetching strings for \"en\"...")
+  const en = await stringsFetcher("en")
+  if (lang === "en") return en
+  console.log(`makeStrings: fetching strings for "${lang}"...`)
+  const stringResources = await stringsFetcher(lang)
+  return mergeResources(en, stringResources, "stringResources")
+}
+
+export default makeStrings
