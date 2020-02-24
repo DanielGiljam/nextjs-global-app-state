@@ -1,10 +1,8 @@
 import {Provider} from "react"
 
-import responsiveFontSizes from "@material-ui/core/styles/responsiveFontSizes"
-import createMuiTheme from "@material-ui/core/styles/createMuiTheme"
-
 import {ThemeProvider, Theme} from "@material-ui/core"
 import {Cookies, CookieConsent} from "./util/cookies"
+import {GlobalAppStatePropertyParameters} from "./appFactory/GlobalAppStateProperty"
 
 import webStorage from "./util/web-storage"
 import setCookie from "./util/cookies/set-cookie"
@@ -85,31 +83,34 @@ function getThemeTypeAuto(): "light" | "dark" {
 
 export type ThemeType = "auto" | "light" | "dark"
 
-async function makeTheme(themeType: ThemeType): Promise<Theme> {
-  return responsiveFontSizes(
-      createMuiTheme({
-        palette: {
-          type:
+interface ThemeOptions {
+  createTheme(themeType: ThemeType): Promise<Theme>;
+  ThemeProvider: typeof ThemeProvider;
+}
+
+function theme({
+  createTheme,
+  ThemeProvider,
+}: ThemeOptions): GlobalAppStatePropertyParameters<ThemeType, Theme> {
+  return {
+    key: "theme",
+    defaultValue: "auto",
+    defaultValues: new Set<ThemeType>(["auto", "light", "dark"]),
+    initializeValue: {
+      serverSide: getThemeTypeServerSide,
+      clientSide: getThemeTypeClientSide,
+    },
+    setValue: setThemeTypeClientSide,
+    controlContext: {
+      transformValue: async (themeType: ThemeType): Promise<Theme> =>
+        createTheme(
           themeType === "auto" ?
             getThemeTypeAuto() :
             (themeType as "light" | "dark"),
-        },
-      }),
-  )
+        ),
+      ContextProvider: (ThemeProvider as unknown) as Provider<Theme>,
+    },
+  }
 }
 
-export default {
-  key: "theme",
-  defaultValue: "auto",
-  defaultValues: new Set<ThemeType>(["auto", "light", "dark"]),
-  initializeValue: {
-    serverSide: getThemeTypeServerSide,
-    clientSide: getThemeTypeClientSide,
-  },
-  setValue: setThemeTypeClientSide,
-  controlContext: {
-    transformValue: async (theme: ThemeType): Promise<Theme> =>
-      makeTheme(theme),
-    ContextProvider: (ThemeProvider as unknown) as Provider<Theme>,
-  },
-}
+export default theme
