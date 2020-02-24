@@ -16,9 +16,7 @@
     "declarationMap": true,
     "sourceMap": true,
     "outDir": "./lib",
-    "rootDir": "./src",
-    "baseUrl": "./src",
-    "removeComments": true
+    "rootDir": "./src"
   },
   "exclude": ["node_modules", "src/components", "src/pages"],
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"]
