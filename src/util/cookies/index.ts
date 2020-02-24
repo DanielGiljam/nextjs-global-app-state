@@ -1,8 +1,3 @@
-import {IncomingMessage} from "http"
-
-import webStorage from "../web-storage"
-
-import parseCookieConsent from "./parse-cookie-consent"
 import parseCookies from "./parse-cookies"
 import purgeCookies from "./purge-cookies"
 import setCookie from "./set-cookie"
@@ -11,47 +6,6 @@ export type CookieConsent = boolean | null
 
 export interface Cookies {
   [key: string]: string;
-}
-
-export async function getCookieConsentServerSide(
-    values: Set<CookieConsent>,
-    cookies: Cookies,
-    req: IncomingMessage,
-): Promise<boolean> {
-  return cookies["cookie-consent"] === "true"
-}
-
-export async function getCookieConsentClientSide(
-    values: Set<CookieConsent>,
-    existingValue: CookieConsent,
-): Promise<CookieConsent> {
-  // (If environment isn't client's, throw an error)
-  if (typeof window === "undefined") {
-    throw new Error(
-        "getCookieConsentClientSide() was called in an environment that isn't the client's.",
-    )
-  }
-  // 1. Reading localStorage
-  const local = parseCookieConsent(window.localStorage.cookieConsent)
-  if (local != null) {
-    console.log(
-        `getCookieConsentClientSide: returning "${local}" based on item in localStorage.`,
-    )
-    return local
-  }
-  // 2. Returning that cookie consent is neither true or false
-  return null
-}
-
-export async function setCookieConsentClientSide(
-    values: Set<CookieConsent>,
-    cookieConsent: CookieConsent,
-    value: CookieConsent,
-): Promise<void> {
-  console.log(
-      `setCookieConsent: setting cookie consent to "${cookieConsent}"...`,
-  )
-  webStorage.set("cookieConsent", cookieConsent.toString())
 }
 
 export async function setCookies(cookies: Cookies): Promise<void> {
