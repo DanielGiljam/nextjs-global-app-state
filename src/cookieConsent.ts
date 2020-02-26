@@ -35,10 +35,9 @@ async function getCookieConsentClientSide(): Promise<CookieConsent> {
     console.log(
         `getCookieConsentClientSide: returning "${local}" based on item in localStorage.`,
     )
-    return local
   }
   // 2. Returning that cookie consent is neither true or false
-  return null
+  return local
 }
 
 async function setCookieConsentClientSide(
