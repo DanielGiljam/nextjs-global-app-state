@@ -3,7 +3,13 @@
 import {IncomingMessage} from "http"
 import {ParsedUrlQuery} from "querystring"
 
-import React, {Component, ReactNode, useEffect, useMemo, useState} from "react"
+import React, {
+  ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react"
 
 import {AppContext, AppInitialProps, AppProps} from "next/app"
 
@@ -18,9 +24,12 @@ import {
 } from "./GlobalAppStateProperty"
 import {GlobalAppStateContextProvider} from "./GlobalAppStateContext"
 
+import cookieConsent from "../cookieConsent"
+import {setCookies, Cookies} from "../util/cookies"
+
 interface AppFactoryOptions {
   Head?: ReactNode;
-  Wrapper?: typeof Component;
+  Wrapper?: (props: {children: ReactNode}) => JSX.Element;
   properties?: GlobalAppStatePropertyParameters[];
 }
 
@@ -40,19 +49,23 @@ interface URLParams {
   lang?: string;
 }
 
-function appFactory({Head, Wrapper, properties}: AppFactoryOptions): App {
-  const globalAppState = new GlobalAppState(properties)
-  const [
-    contextKeys,
-    contextProviders,
-  ] = globalAppState.getContextKeysAndProviders()
+function appFactory({
+  Head,
+  Wrapper = ({children}: {children: ReactNode}): JSX.Element => <>{children}</>,
+  properties = [],
+}: AppFactoryOptions = {}): App {
+  const globalAppState = new GlobalAppState([...properties, cookieConsent])
   const [
     propertyKeys,
     propertyKeysPlural,
     setterNames,
   ] = globalAppState.getPropertyKeys()
+  const [
+    contextKeys,
+    contextProviders,
+  ] = globalAppState.getContextKeysAndProviders()
 
-  const App: App = function App(props) {
+  const App: App = function App({Component, ...props}) {
     const [state, setState] = useState(() => {
       return globalAppState.initializeStateClientSidePhase1(
           props.dehydratedState,
@@ -122,6 +135,18 @@ function appFactory({Head, Wrapper, properties}: AppFactoryOptions): App {
       return setters
     }, [...setterDependencies, state.globalAppState.cookieConsent])
 
+    useCallback(() => {
+      if (state.globalAppState.cookieConsent) {
+        const cookies: Cookies = {}
+        propertyKeys.forEach((key) => {
+          cookies[key] = state.globalAppState[key]
+        })
+        setCookies(cookies)
+      } else {
+        setCookies({})
+      }
+    }, [state.globalAppState.cookieConsent])
+
     return (
       <>
         {Head}
@@ -129,13 +154,9 @@ function appFactory({Head, Wrapper, properties}: AppFactoryOptions): App {
           <GlobalAppStateContextProvider
             globalAppState={{...state.globalAppState, ...setters}}
           >
-            {Wrapper ? (
-              <Wrapper>
-                <Component {...props.pageProps} />
-              </Wrapper>
-            ) : (
+            <Wrapper>
               <Component {...props.pageProps} />
-            )}
+            </Wrapper>
           </GlobalAppStateContextProvider>
         </ContextProviders>
       </>

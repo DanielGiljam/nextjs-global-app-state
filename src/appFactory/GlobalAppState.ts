@@ -5,7 +5,6 @@ import {Provider} from "react"
 import GlobalAppStateProperty, {
   ContextValueType,
   GlobalAppStatePropertySetter,
-  GlobalAppStatePropertySetterProxy,
   GlobalAppStatePropertyParameters,
   DehydratedGlobalAppStateProperty,
   HydratedGlobalAppStatePropertyType,
@@ -13,10 +12,10 @@ import GlobalAppStateProperty, {
 
 import parseCookies from "../util/cookies/parse-cookies"
 
-import cookieConsent from "../cookieConsent"
+import GlobalAppStateError, {GlobalAppStateErrors} from "./GlobalAppStateError"
 
 type DehydratedProperties = GlobalAppStatePropertyParameters[]
-type HydratedProperties = Map<string, GlobalAppStateProperty>
+type HydratedProperties = GlobalAppStateProperty[]
 
 export interface DehydratedState {
   [key: string]: DehydratedGlobalAppStateProperty;
@@ -31,18 +30,38 @@ export interface HydratedState {
   [key: string]: ContextValueType;
 }
 
-export type PropertySettersBuildType = {
-  [key: string]:
-    | GlobalAppStatePropertySetterProxy
-    | GlobalAppStatePropertySetter;
+export interface PropertySettersUnderConstruction {
+  [key: string]: GlobalAppStatePropertySetter;
 }
 
 class GlobalAppState {
-  private dehydratedProperties: DehydratedProperties
-  private hydratedProperties?: HydratedProperties
+  private readonly properties: HydratedProperties = []
+  private readonly propertyKeys: string[] = []
+  private readonly propertyKeysPlural: string[] = []
+  private readonly setterNames: string[] = []
 
-  constructor(properties: DehydratedProperties = []) {
-    this.dehydratedProperties = [...properties, cookieConsent]
+  constructor(properties: DehydratedProperties) {
+    const uniqueKeys: string[] = []
+    let key: string
+    let keyPlural: string
+    let setterName: string
+    properties.forEach((property, index) => {
+      key = property.key
+      if (uniqueKeys.includes(key)) {
+        throw new GlobalAppStateError(GlobalAppStateErrors.NON_UNIQUE_KEY, key)
+      }
+      uniqueKeys.push(key)
+      this.properties.push(new GlobalAppStateProperty(property))
+      this.propertyKeys.push(key)
+      keyPlural = this.properties[index].keyPlural
+      setterName = this.properties[index].setterName
+      if (uniqueKeys.includes(keyPlural) || uniqueKeys.includes(setterName)) {
+        throw new GlobalAppStateError(GlobalAppStateErrors.NON_UNIQUE_KEY, key)
+      }
+      uniqueKeys.push(keyPlural, setterName)
+      this.propertyKeysPlural.push(keyPlural)
+      this.setterNames.push(setterName)
+    })
   }
 
   getContextKeysAndProviders(): [string[], Provider<ContextValueType>[]] {
@@ -60,48 +79,23 @@ class GlobalAppState {
   }
 
   getPropertyKeys(): [string[], string[], string[]] {
-    const [propertyKeys, propertyKeysPlural, setterNames]: [
-      string[],
-      string[],
-      string[]
-    ] = [[], [], []]
-    this.properties.forEach((property) => {
-      propertyKeys.push(property.key)
-      propertyKeysPlural.push(property.keyPlural)
-      setterNames.push(property.setterName)
-    })
-    return [propertyKeys, propertyKeysPlural, setterNames]
+    return [this.propertyKeys, this.propertyKeysPlural, this.setterNames]
   }
 
   async initializeStateServerSide(
       req: IncomingMessage,
   ): Promise<DehydratedState> {
     const cookies = parseCookies(req.headers["cookie"])
-    const dehydratedStatePropertyPromises = this.dehydratedProperties.map(
-        (property) =>
-          (async (): Promise<
-          DehydratedGlobalAppStateProperty & {key: string}
-        > => {
-            const values = await GlobalAppStateProperty.getValuesServerSide(
-                property,
-            )
-            const value = await GlobalAppStateProperty.getValueServerSide(
-                property,
-                values,
-                cookies,
-                req,
-            )
-            return {
-              key: property.key,
-              value,
-              values: Array.from(values),
-              serializedContext: await GlobalAppStateProperty.serializeContext(
-                  property.controlContext,
-                  value,
-                  property.key,
-              ),
-            }
-          })(),
+    const dehydratedStatePropertyPromises = this.properties.map((property) =>
+      (async (): Promise<DehydratedGlobalAppStateProperty & {key: string}> => {
+        await property.initializeStateServerSide(cookies, req)
+        return {
+          key: property.key,
+          value: property.value,
+          values: Array.from(property.values),
+          serializedContext: property.contextValue,
+        }
+      })(),
     )
     return await Promise.all(dehydratedStatePropertyPromises).then(
         (dehydratedStateProperties) => {
@@ -118,7 +112,7 @@ class GlobalAppState {
       dehydratedState: DehydratedState,
   ): HydratedState {
     const hydratedContexts: [string, ContextValueType?][] = []
-    const hydratedStateChunks = Array.from(this.properties, ([, property]): [
+    const hydratedStateChunks = this.properties.map((property): [
       string,
       HydratedGlobalAppStatePropertyType
     ][] => {
@@ -139,17 +133,19 @@ class GlobalAppState {
       hydratedState: HydratedState,
   ): Promise<HydratedState | undefined> {
     const initializedContexts: [string, ContextValueType?][] = []
-    const initializedStateChunkPromises = Array.from(
-        this.properties,
-        ([, property]) =>
-          (async (): Promise<[string, HydratedGlobalAppStatePropertyType][]> => {
-            await property.initializeStateClientSide()
-            initializedContexts.push([property.key, property.contextValue])
-            return [
-              [property.key, property.value],
-              [property.keyPlural, property.values],
-            ]
-          })(),
+    const initializedStateChunkPromises = this.properties.map((property) =>
+      (async (): Promise<[string, HydratedGlobalAppStatePropertyType][]> => {
+        await property.initializeStateClientSide(
+            hydratedState.globalAppState[property.key],
+            hydratedState.globalAppState[property.keyPlural],
+            hydratedState[property.key],
+        )
+        initializedContexts.push([property.key, property.contextValue])
+        return [
+          [property.key, property.value],
+          [property.keyPlural, property.values],
+        ]
+      })(),
     )
     return await Promise.all(initializedStateChunkPromises).then(
         (initializedStateChunks) => {
@@ -176,24 +172,12 @@ class GlobalAppState {
     )
   }
 
-  getSetters(): PropertySettersBuildType {
-    const setters: PropertySettersBuildType = {}
+  getSetters(): PropertySettersUnderConstruction {
+    const setters: PropertySettersUnderConstruction = {}
     this.properties.forEach(
         (property) => (setters[property.setterName] = property.setter),
     )
     return setters
-  }
-
-  private get properties(): HydratedProperties {
-    return (
-      this.hydratedProperties ||
-      (this.hydratedProperties = new Map(
-          this.dehydratedProperties.map((property) => [
-            property.key,
-            new GlobalAppStateProperty(property),
-          ]),
-      ))
-    )
   }
 }
 

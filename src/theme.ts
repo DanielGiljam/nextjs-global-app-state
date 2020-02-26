@@ -1,6 +1,6 @@
 import {Provider} from "react"
 
-import {ThemeProvider, Theme} from "@material-ui/core"
+import {Theme} from "@material-ui/core"
 import {Cookies, CookieConsent} from "./util/cookies"
 import {GlobalAppStatePropertyParameters} from "./appFactory/GlobalAppStateProperty"
 
@@ -84,8 +84,8 @@ function getThemeTypeAuto(): "light" | "dark" {
 export type ThemeType = "auto" | "light" | "dark"
 
 interface ThemeOptions {
-  createTheme(themeType: ThemeType): Promise<Theme>;
-  ThemeProvider: typeof ThemeProvider;
+  createTheme(themeType: ThemeType): Theme;
+  ThemeProvider: Provider<Theme>;
 }
 
 function theme({
@@ -102,13 +102,13 @@ function theme({
     },
     setValue: setThemeTypeClientSide,
     controlContext: {
-      transformValue: async (themeType: ThemeType): Promise<Theme> =>
+      transformValue: (themeType: ThemeType): Theme =>
         createTheme(
           themeType === "auto" ?
             getThemeTypeAuto() :
             (themeType as "light" | "dark"),
         ),
-      ContextProvider: (ThemeProvider as unknown) as Provider<Theme>,
+      ContextProvider: ThemeProvider,
     },
   }
 }

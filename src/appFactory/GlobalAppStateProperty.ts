@@ -2,6 +2,8 @@ import {IncomingMessage} from "http"
 
 import {Context, Provider} from "react"
 
+import GlobalAppStateError, {GlobalAppStateErrors} from "./GlobalAppStateError"
+
 import {Cookies, CookieConsent} from "../util/cookies"
 
 export type PropertyValueType = any // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -15,7 +17,7 @@ export type GlobalAppStatePropertySetter<
   values: Set<T>,
   cookieConsent: CookieConsent,
   value: T
-) => Promise<C | undefined>
+) => Promise<C | void>
 
 export type GlobalAppStatePropertySetterProxy<T = PropertyValueType> = (
   value: T
@@ -61,17 +63,17 @@ export interface DehydratedGlobalAppStateProperty<
   serializedContext?: C;
 }
 
-export type HydratedGlobalAppStatePropertyType<
-  T = PropertyValueType,
-  C = ContextValueType
-> = T | Set<T> | GlobalAppStatePropertySetterProxy<T>
+export type HydratedGlobalAppStatePropertyType<T = PropertyValueType> =
+  | T
+  | Set<T>
+  | GlobalAppStatePropertySetterProxy<T>
 
 class GlobalAppStateProperty<T = PropertyValueType, C = ContextValueType> {
   readonly key: string
+  readonly keyPlural: string
+  readonly setterName: string
+  readonly isSensitiveInformation?: boolean
 
-  private readonly customKeyPlural?: string
-  private readonly defaultValue: T
-  private readonly defaultValues: Set<T>
   private readonly initializeValue?: {
     serverSide?(
       values?: Set<T>,
@@ -85,7 +87,6 @@ class GlobalAppStateProperty<T = PropertyValueType, C = ContextValueType> {
     clientSide?(): Promise<Set<T>>;
   }
   private readonly setValue?: GlobalAppStatePropertySetter<T, C>
-  private readonly isSensitiveInformation?: boolean
   private readonly controlContext?: {
     transformValue?(value: T): C | Promise<C>;
     isAsync?: boolean;
@@ -109,9 +110,11 @@ class GlobalAppStateProperty<T = PropertyValueType, C = ContextValueType> {
   }: GlobalAppStatePropertyParameters<T, C>) {
     if (defaultValues.has(defaultValue)) {
       this.key = key
-      this.customKeyPlural = keyPlural
-      this.defaultValue = defaultValue
-      this.defaultValues = defaultValues
+      this.keyPlural = keyPlural || key + "s"
+      this.setterName = key.replace(
+          /^./,
+          (match) => `set${match.toUpperCase()}`,
+      )
       this.state = {
         value: defaultValue,
         values: defaultValues,
@@ -120,9 +123,39 @@ class GlobalAppStateProperty<T = PropertyValueType, C = ContextValueType> {
         this[key as keyof this] = value
       })
     } else {
-      throw new Error(
-          "defaultValue must exist in defaultValues when defining a global app state property!",
+      throw new GlobalAppStateError(
+          GlobalAppStateErrors.PROPERTY_CONSTRUCTION_ERROR,
+          key,
       )
+    }
+  }
+
+  async initializeStateServerSide(
+      cookies: Cookies,
+      req: IncomingMessage,
+  ): Promise<void> {
+    if (this.getValues?.serverSide) {
+      this.state.values = await this.getValues.serverSide()
+    }
+    if (this.initializeValue?.serverSide) {
+      this.state.value = await this.initializeValue.serverSide(
+          this.state.values,
+          cookies,
+          req,
+      )
+    }
+    if (this.controlContext?.isSerializable) {
+      if (this.controlContext.transformValue) {
+        this.state.contextValue = await this.controlContext.transformValue(
+            this.state.value,
+        )
+      } else {
+        GlobalAppStateError.warn(
+            GlobalAppStateErrors.AMBIGUOUS_IS_SERIALIZABLE,
+            this.key,
+        )
+      }
+      this.state.contextValue = (this.state.value as unknown) as C
     }
   }
 
@@ -145,24 +178,49 @@ class GlobalAppStateProperty<T = PropertyValueType, C = ContextValueType> {
     }
   }
 
-  async initializeStateClientSide(): Promise<void> {
-    // TODO: implement initializeStateClientSide -method in GlobalAppStateProperty!
+  async initializeStateClientSide(
+      existingValue: T,
+      existingValues: Set<T>,
+      existingContextValue: C,
+  ): Promise<void> {
+    if (this.getValues?.clientSide) {
+      this.state.values = await this.getValues.clientSide()
+    } else {
+      this.state.values = existingValues
+    }
+    if (this.initializeValue?.clientSide) {
+      this.state.value = await this.initializeValue.clientSide(
+          this.state.values,
+          existingValue,
+      )
+    } else {
+      this.state.value = existingValue
+    }
+    if (this.controlContext) {
+      if (!this.controlContext.isSerializable && this.controlContext.isAsync) {
+        if (this.controlContext.transformValue) {
+          this.state.contextValue = await this.controlContext.transformValue(
+              this.state.value,
+          )
+        } else {
+          GlobalAppStateError.warn(
+              GlobalAppStateErrors.AMBIGUOUS_IS_ASYNC,
+              this.key,
+          )
+        }
+      } else {
+        this.state.contextValue =
+          existingContextValue || ((this.state.value as unknown) as C)
+      }
+    }
   }
 
   get value(): T {
     return this.state.value
   }
 
-  get keyPlural(): string {
-    return this.customKeyPlural || this.key + "s"
-  }
-
   get values(): Set<T> {
     return this.state.values
-  }
-
-  get setterName(): string {
-    return this.key.replace(/^./, (match) => `set${match.toUpperCase()}`)
   }
 
   get setter(): GlobalAppStatePropertySetter<T, C> {
@@ -194,42 +252,6 @@ class GlobalAppStateProperty<T = PropertyValueType, C = ContextValueType> {
       this.controlContext?.context?.Provider ||
       undefined
     )
-  }
-
-  static async getValueServerSide<T>(
-      property: GlobalAppStatePropertyParameters<T>,
-      values: Set<T>,
-      cookies: Cookies,
-      req: IncomingMessage,
-  ): Promise<T> {
-    return property.initializeValue?.serverSide ?
-      await property.initializeValue.serverSide(values, cookies, req) :
-      property.defaultValue
-  }
-
-  static async getValuesServerSide<T>(
-      property: GlobalAppStatePropertyParameters<T>,
-  ): Promise<Set<T>> {
-    return property.getValues?.serverSide ?
-      await property.getValues.serverSide() :
-      property.defaultValues
-  }
-
-  static async serializeContext<T, C>(
-      controlContext: GlobalAppStatePropertyParameters<T, C>["controlContext"],
-      value: T,
-      key: string,
-  ): Promise<C | undefined> {
-    if (controlContext?.isSerializable) {
-      if (controlContext.transformValue) {
-        return await controlContext.transformValue(value)
-      }
-      console.warn(
-          `GlobalAppState.${key}: controlContext.isSerializable is true but controlContext.transformValue is not defined!`,
-      )
-      return (value as unknown) as C
-    }
-    return undefined
   }
 }
 
