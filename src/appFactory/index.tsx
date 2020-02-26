@@ -1,243 +1,143 @@
-import React, {useEffect, useState} from "react"
-
-import {AppInitialProps, AppContext, AppProps} from "next/app"
-import Head from "next/head"
+/* eslint-disable react/prop-types */
 
 import {IncomingMessage} from "http"
 import {ParsedUrlQuery} from "querystring"
 
-import CssBaseline from "@material-ui/core/CssBaseline"
-import {ThemeProvider, Theme} from "@material-ui/core/styles"
-import {StringsProvider, Strings} from "../contexts/strings"
-import {
-  GlobalAppStateProvider,
-  DehydratedGlobalAppState,
-  GlobalAppState,
-} from "../contexts/global-app-state"
+import React, {Component, ReactNode, useEffect, useMemo, useState} from "react"
 
-import makeStrings from "../contexts/strings/makeStrings"
-import makeTheme from "../contexts/theme/makeTheme"
-import makeGlobalAppState from "../contexts/global-app-state/makeGlobalAppState"
+import {AppContext, AppInitialProps, AppProps} from "next/app"
 
+import GlobalAppState, {
+  DehydratedState,
+  GlobalAppStateProxy,
+} from "./GlobalAppState"
 import {
-  getLangServerSide,
-  getLangClientSide,
-  setLangClientSide,
-  extendStringClass,
-} from "../util/strings"
-import {
-  getThemeTypeServerSide,
-  getThemeTypeClientSide,
-  setThemeTypeClientSide,
-} from "../util/theme"
-import {
-  getCookieConsentServerSide,
-  getCookieConsentClientSide,
-  setCookieConsentClientSide,
-  setCookies,
-} from "../util/cookies"
-
-import parseCookies from "../util/cookies/parse-cookies"
+  GlobalAppStatePropertyParameters,
+  PropertyValueType,
+  ContextValueType,
+} from "./GlobalAppStateProperty"
+import {GlobalAppStateContextProvider} from "./GlobalAppStateContext"
 
 interface AppFactoryOptions {
-  stringResourcesPath: string;
-  Wrapper?: typeof React.Component;
+  Head?: ReactNode;
+  Wrapper?: typeof Component;
+  properties?: GlobalAppStatePropertyParameters[];
 }
 
 interface App {
   (props: AppInitialPropsExtended & AppProps): JSX.Element;
-  getInitialProps({
-    Component,
-    ctx,
-  }: AppContext): Promise<AppInitialPropsExtended>;
-  getInitialPropsServerSide(
-    req: IncomingMessage
-  ): Promise<InitialPropsServerSide>;
+  getInitialProps(appContext: AppContext): Promise<AppInitialPropsExtended>;
+  getInitialState(req: IncomingMessage): Promise<DehydratedState>;
   getURLParams(query: ParsedUrlQuery): Promise<URLParams>;
 }
 
-interface AppState {
-  strings: Strings;
-  theme: Theme;
-  globalAppState: GlobalAppState;
-}
-
-interface InitialPropsServerSide {
-  strings: Strings;
-  themeType: string;
-  dehydratedGlobalAppState: DehydratedGlobalAppState;
-}
-
-interface URLParams {
-  lang?: string | null;
-}
-
 interface AppInitialPropsExtended extends AppInitialProps {
-  appProps: InitialPropsServerSide | null;
+  dehydratedState: DehydratedState;
   urlParams: URLParams;
 }
 
-function AppFactory(
-    {stringResourcesPath, Wrapper}: AppFactoryOptions = {stringResourcesPath: "/"},
-): App {
-  const App = function App(
-      props: AppInitialPropsExtended & AppProps,
-  ): JSX.Element {
-    const {Component, pageProps, appProps, urlParams} = props
+interface URLParams {
+  lang?: string;
+}
 
-    // @ts-ignore
-    if (!String.format) extendStringClass()
+function appFactory({Head, Wrapper, properties}: AppFactoryOptions): App {
+  const globalAppState = new GlobalAppState(properties)
+  const [
+    contextKeys,
+    contextProviders,
+  ] = globalAppState.getContextKeysAndProviders()
+  const [
+    propertyKeys,
+    propertyKeysPlural,
+    setterNames,
+  ] = globalAppState.getPropertyKeys()
 
-    const [{strings, theme, globalAppState}, setState] = useState(
-        (): AppState => {
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          const {strings, themeType, dehydratedGlobalAppState} = appProps!
-          return {
-            strings,
-            theme: makeTheme(themeType),
-            globalAppState: makeGlobalAppState(dehydratedGlobalAppState),
-          }
-        },
-    )
-
-    function setLang(lang: string): void {
-      const {languages: supportedLanguages, cookieConsent} = globalAppState
-      setLangClientSide(supportedLanguages, cookieConsent, lang)
-          .then(() => makeStrings(lang, stringResourcesPath))
-          .then((strings) =>
-            setState((prevState) => ({
-              ...prevState,
-              strings,
-              globalAppState: {...prevState.globalAppState, lang},
-            })),
-          )
-    }
-
-    function setTheme(themeType: string): void {
-      const {themes: supportedThemeTypes, cookieConsent} = globalAppState
-      setThemeTypeClientSide(
-          supportedThemeTypes,
-          cookieConsent,
-          themeType,
-      ).then(() =>
-        setState((prevState) => ({
-          ...prevState,
-          theme: makeTheme(themeType),
-          globalAppState: {...prevState.globalAppState, theme: themeType},
-        })),
+  const App: App = function App(props) {
+    const [state, setState] = useState(() => {
+      return globalAppState.initializeStateClientSidePhase1(
+          props.dehydratedState,
       )
-    }
-
-    function setCookieConsent(cookieConsent: boolean): void {
-      setCookieConsentClientSide(cookieConsent)
-          .then(() =>
-            setState((prevState) => ({
-              ...prevState,
-              globalAppState: {...prevState.globalAppState, cookieConsent},
-            })),
-          )
-          .then(() => {
-            if (cookieConsent) {
-              const {lang, theme} = globalAppState
-              return setCookies({
-                "lang": lang,
-                "theme-type": theme,
-                "cookie-consent": cookieConsent.toString(),
-              })
-            } else {
-              return setCookies({})
-            }
-          })
-          .catch((error) => console.error(error.stack))
-    }
+    })
 
     useEffect(() => {
-      // 1. Remove the server-side injected CSS
-      const jssStyles = document.querySelector("#jss-server-side")
-      jssStyles?.parentElement?.removeChild(jssStyles)
-      // 2. Set language client side
-      const {
-        languages: supportedLanguages,
-        lang: serverSideLang,
-        theme: serverSideThemeType,
-      } = globalAppState
-      getLangClientSide(supportedLanguages, serverSideLang)
-          .then((lang) => {
-            if (lang !== serverSideLang) {
-              return makeStrings(lang, stringResourcesPath).then((strings) =>
-                setState((prevState) => ({
-                  ...prevState,
-                  strings,
-                  globalAppState: {...prevState.globalAppState, lang},
-                })),
-              )
-            }
-          })
-          .catch((error) => console.error(error.stack))
-      // 3. Check theme client side
-      getThemeTypeClientSide()
-          .then((themeType) => {
-            if (themeType !== serverSideThemeType) {
-              return setState((prevState) => ({
+      globalAppState
+          .initializeStateClientSidePhase2(state)
+          .then((deltaState) => {
+            if (deltaState) {
+              setState((prevState) => ({
                 ...prevState,
-                theme: makeTheme(themeType),
-                globalAppState: {...prevState.globalAppState, theme: themeType},
+                ...deltaState,
+                globalAppState: {
+                  ...prevState.globalAppState,
+                  ...deltaState.globalAppState,
+                },
               }))
             }
           })
-          .catch((error) => console.error(error.stack))
-      // 4. Check if client has allowed cookies
-      if (!globalAppState.cookieConsent) {
-        getCookieConsentClientSide()
-            .then((cookieConsent) => {
-              if (cookieConsent == null) {
-                return setState((prevState) => ({
-                  ...prevState,
-                  globalAppState: {...prevState.globalAppState, cookieConsent},
-                }))
-              } else if (cookieConsent === true) {
-                return setCookieConsent(cookieConsent)
-              }
-            })
-            .catch((error) => console.error(error.stack))
-      }
     }, [])
 
-    useEffect(() => {
-      let lang
-      if ((lang = urlParams.lang)) {
-        urlParams.lang = null
-        setLang(lang)
-      }
-    }, [urlParams.lang])
+    const contexts = contextKeys.map((key) => state[key])
+    const ContextProviders = useMemo(
+        () => ({children}: {children: ReactNode}): JSX.Element =>
+          contextProviders.reduce(
+              (accumulator, ContextProvider, index) => (
+                <ContextProvider value={contexts[index]}>
+                  {accumulator}
+                </ContextProvider>
+              ),
+              <>{children}</>,
+          ),
+        contexts,
+    )
+
+    const setterDependencies = propertyKeysPlural.map(
+        (key) => state.globalAppState[key],
+    )
+    const setters = useMemo(() => {
+      const setters: GlobalAppStateProxy = {}
+      let index: number
+      let propertyKey: string
+      Object.entries(globalAppState.getSetters()).forEach(([key, setter]) => {
+        index = setterNames.indexOf(key)
+        propertyKey = propertyKeys[index]
+        setters[key] = (value: PropertyValueType): void => {
+          setter(
+              // TODO: figure out this type issue (when constructing setters)!
+              // @ts-ignore
+              setterDependencies[index],
+              state.globalAppState.cookieConsent,
+              value,
+          ).then((contextValue: ContextValueType | undefined) => {
+            setState((prevState) => ({
+              ...prevState,
+              [propertyKey]: contextValue,
+              globalAppState: {
+                ...prevState.globalAppState,
+                [propertyKey]: value,
+              },
+            }))
+          })
+        }
+      })
+      return setters
+    }, [...setterDependencies, state.globalAppState.cookieConsent])
 
     return (
       <>
-        <Head>
-          <title>{strings.general.siteName}</title>
-        </Head>
-        <ThemeProvider theme={theme}>
-          {/* CssBaseline kickstart an elegant, consistent, and simple baseline to build upon. */}
-          <CssBaseline />
-          <StringsProvider strings={strings}>
-            <GlobalAppStateProvider
-              globalAppState={{
-                ...globalAppState,
-                setLang,
-                setTheme,
-                setCookieConsent,
-              }}
-            >
-              {Wrapper ? (
-                <Wrapper>
-                  <Component {...pageProps} />
-                </Wrapper>
-              ) : (
-                <Component {...pageProps} />
-              )}
-            </GlobalAppStateProvider>
-          </StringsProvider>
-        </ThemeProvider>
+        {Head}
+        <ContextProviders>
+          <GlobalAppStateContextProvider
+            globalAppState={{...state.globalAppState, ...setters}}
+          >
+            {Wrapper ? (
+              <Wrapper>
+                <Component {...props.pageProps} />
+              </Wrapper>
+            ) : (
+              <Component {...props.pageProps} />
+            )}
+          </GlobalAppStateContextProvider>
+        </ContextProviders>
       </>
     )
   }
@@ -245,50 +145,24 @@ function AppFactory(
   App.getInitialProps = async ({
     Component,
     ctx,
-  }: AppContext): Promise<AppInitialPropsExtended> => {
-    const appProps = ctx.req ?
-      await App.getInitialPropsServerSide(ctx.req) :
-      null
+  }): Promise<AppInitialPropsExtended> => {
     let pageProps = {}
     if (Component.getInitialProps) {
       pageProps = await Component.getInitialProps(ctx)
     }
+    let dehydratedState = {}
+    if (ctx.req) {
+      dehydratedState = await App.getInitialState(ctx.req)
+    }
     const urlParams = await App.getURLParams(ctx.query)
-    return {pageProps, appProps, urlParams}
+    return {pageProps, dehydratedState, urlParams}
   }
 
-  App.getInitialPropsServerSide = async (
-    req: IncomingMessage,
-  ): Promise<InitialPropsServerSide> => {
-    // TODO: implement how the default values/dehydrated app state gets here!
-    const dehydratedGlobalAppState: DehydratedGlobalAppState = {
-      lang: "en",
-      languages: ["en", "sv", "fi"],
-      theme: "auto",
-      themes: ["auto", "light", "dark"],
-      cookieConsent: false,
-    }
-    const cookies = parseCookies(req.headers["cookie"])
-    const lang = (dehydratedGlobalAppState.lang = await getLangServerSide(
-        dehydratedGlobalAppState.languages,
-        cookies,
-        req.headers["accept-language"],
-    ))
-    const themeType = (dehydratedGlobalAppState.theme = await getThemeTypeServerSide(
-        dehydratedGlobalAppState.themes,
-        cookies,
-    ))
-    dehydratedGlobalAppState.cookieConsent = await getCookieConsentServerSide(
-        cookies,
-    )
-    return {
-      strings: await makeStrings(lang, stringResourcesPath),
-      themeType,
-      dehydratedGlobalAppState,
-    }
+  App.getInitialState = async (req): Promise<DehydratedState> => {
+    return await globalAppState.initializeStateServerSide(req)
   }
 
-  App.getURLParams = async (query: ParsedUrlQuery): Promise<URLParams> => {
+  App.getURLParams = async (query): Promise<URLParams> => {
     return {
       lang: Array.isArray(query._lang) ? query._lang[0] : query._lang,
     }
@@ -297,4 +171,4 @@ function AppFactory(
   return App
 }
 
-export default AppFactory
+export default appFactory

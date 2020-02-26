@@ -4,11 +4,26 @@ import {Context, Provider} from "react"
 
 import {Cookies, CookieConsent} from "../util/cookies"
 
-export type GlobalAppStatePropertyValue = string | number | boolean | null
+export type PropertyValueType = any // eslint-disable-line @typescript-eslint/no-explicit-any
+
+export type ContextValueType = any // eslint-disable-line @typescript-eslint/no-explicit-any
+
+export type GlobalAppStatePropertySetter<
+  T = PropertyValueType,
+  C = ContextValueType
+> = (
+  values: Set<T>,
+  cookieConsent: CookieConsent,
+  value: T
+) => Promise<C | undefined>
+
+export type GlobalAppStatePropertySetterProxy<T = PropertyValueType> = (
+  value: T
+) => void
 
 export interface GlobalAppStatePropertyParameters<
-  T = GlobalAppStatePropertyValue,
-  C = T
+  T = PropertyValueType,
+  C = ContextValueType
 > {
   key: string;
   keyPlural?: string;
@@ -26,39 +41,32 @@ export interface GlobalAppStatePropertyParameters<
     serverSide?(): Promise<Set<T>>;
     clientSide?(): Promise<Set<T>>;
   };
-  setValue?(
-    values?: Set<T>,
-    cookieConsent?: CookieConsent,
-    value?: T
-  ): Promise<void>;
+  setValue?: GlobalAppStatePropertySetter<T, C>;
   isSensitiveInformation?: boolean;
   controlContext?: {
-    transformValue?(value: T): Promise<C>;
+    transformValue?(value: T): C | Promise<C>;
+    isAsync?: boolean;
     isSerializable?: boolean;
     context?: Context<C>;
     ContextProvider?: Provider<C>;
   };
 }
 
-export type DehydratedGlobalAppStateProperty<
-  T = GlobalAppStatePropertyValue,
-  C = T
-> = {
+export interface DehydratedGlobalAppStateProperty<
+  T = PropertyValueType,
+  C = ContextValueType
+> {
   value: T;
   values: T[];
-  // TODO: come up with a better type for serializedContext!
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   serializedContext?: C;
 }
 
 export type HydratedGlobalAppStatePropertyType<
-  T = GlobalAppStatePropertyValue
-> =
-  | T
-  | Set<T>
-  | ((values: Set<T>, cookieConsent: CookieConsent, value: T) => Promise<void>)
+  T = PropertyValueType,
+  C = ContextValueType
+> = T | Set<T> | GlobalAppStatePropertySetterProxy<T>
 
-class GlobalAppStateProperty<T = GlobalAppStatePropertyValue, C = T> {
+class GlobalAppStateProperty<T = PropertyValueType, C = ContextValueType> {
   readonly key: string
 
   private readonly customKeyPlural?: string
@@ -76,14 +84,11 @@ class GlobalAppStateProperty<T = GlobalAppStatePropertyValue, C = T> {
     serverSide?(): Promise<Set<T>>;
     clientSide?(): Promise<Set<T>>;
   }
-  private setValue?(
-    values?: Set<T>,
-    cookieConsent?: CookieConsent,
-    value?: T
-  ): Promise<void>
+  private readonly setValue?: GlobalAppStatePropertySetter<T, C>
   private readonly isSensitiveInformation?: boolean
   private readonly controlContext?: {
-    transformValue?(value: T): Promise<C>;
+    transformValue?(value: T): C | Promise<C>;
+    isAsync?: boolean;
     isSerializable?: boolean;
     context?: Context<C>;
     ContextProvider?: Provider<C>;
@@ -92,7 +97,7 @@ class GlobalAppStateProperty<T = GlobalAppStatePropertyValue, C = T> {
   private state: {
     value: T;
     values: Set<T>;
-    serializedContext?: C;
+    contextValue?: C;
   }
 
   constructor({
@@ -121,7 +126,7 @@ class GlobalAppStateProperty<T = GlobalAppStatePropertyValue, C = T> {
     }
   }
 
-  inject({
+  injectDehydratedState({
     value,
     values,
     serializedContext,
@@ -129,22 +134,30 @@ class GlobalAppStateProperty<T = GlobalAppStatePropertyValue, C = T> {
     this.state = {
       value,
       values: new Set<T>(values),
-      serializedContext,
+      contextValue: serializedContext,
+    }
+    if (
+      !this.controlContext?.isSerializable &&
+      !this.controlContext?.isAsync &&
+      this.controlContext?.transformValue
+    ) {
+      this.state.contextValue = this.controlContext.transformValue(value) as C
     }
   }
 
-  get value(): T | Promise<T> {
-    // TODO: implement "value" getter in GlobalAppStateProperty!
+  async initializeStateClientSide(): Promise<void> {
+    // TODO: implement initializeStateClientSide -method in GlobalAppStateProperty!
+  }
+
+  get value(): T {
     return this.state.value
   }
 
   get keyPlural(): string {
-    // TODO: implement "keyPlural" getter in GlobalAppStateProperty!
     return this.customKeyPlural || this.key + "s"
   }
 
-  get values(): Set<T> | Promise<Set<T>> {
-    // TODO: implement "values" getter in GlobalAppStateProperty!
+  get values(): Set<T> {
     return this.state.values
   }
 
@@ -152,68 +165,61 @@ class GlobalAppStateProperty<T = GlobalAppStatePropertyValue, C = T> {
     return this.key.replace(/^./, (match) => `set${match.toUpperCase()}`)
   }
 
-  get setter():
-    | ((
-        values: Set<T>,
-        cookieConsent: CookieConsent,
-        value: T
-      ) => Promise<void>)
-    | Promise<
-        (
-          values: Set<T>,
-          cookieConsent: CookieConsent,
-          value: T
-        ) => Promise<void>
-        > {
-    if (this.setValue) {
-      return this.setValue
+  get setter(): GlobalAppStatePropertySetter<T, C> {
+    if (this.setValue && this.controlContext?.transformValue) {
+      const setValue = this.setValue
+      if (this.controlContext?.transformValue) {
+        const transformValue = this.controlContext?.transformValue
+        return (
+            values: Set<T>,
+            cookieConsent: CookieConsent,
+            value,
+        ): Promise<C> =>
+          setValue(values, cookieConsent, value).then(() =>
+            transformValue(value),
+          )
+      }
+      return setValue
     }
-    return async (
-      values?: Set<T>,
-      cookieConsent?: CookieConsent,
-      value?: T,
-    ): Promise<void> => {
-      // TODO: implement GlobalAppStateProperty setters!
-      console.log("GlobalAppStateProperty setters aren't implemented yet.")
-    }
+    return async (): Promise<undefined> => undefined
   }
 
-  get ContextProvider(): Provider<C> | null {
+  get contextValue(): C | undefined {
+    return this.state.contextValue
+  }
+
+  get ContextProvider(): Provider<C> | undefined {
     return (
       this.controlContext?.ContextProvider ||
       this.controlContext?.context?.Provider ||
-      null
+      undefined
     )
   }
 
-  static async getValueServerSide(
-      property: GlobalAppStatePropertyParameters,
-      values: Set<GlobalAppStatePropertyValue>,
+  static async getValueServerSide<T>(
+      property: GlobalAppStatePropertyParameters<T>,
+      values: Set<T>,
       cookies: Cookies,
       req: IncomingMessage,
-  ): Promise<GlobalAppStatePropertyValue> {
+  ): Promise<T> {
     return property.initializeValue?.serverSide ?
       await property.initializeValue.serverSide(values, cookies, req) :
       property.defaultValue
   }
 
-  static async getValuesServerSide(
-      property: GlobalAppStatePropertyParameters,
-  ): Promise<Set<GlobalAppStatePropertyValue>> {
+  static async getValuesServerSide<T>(
+      property: GlobalAppStatePropertyParameters<T>,
+  ): Promise<Set<T>> {
     return property.getValues?.serverSide ?
       await property.getValues.serverSide() :
       property.defaultValues
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  static async serializeContext<T = any>(
-      controlContext: GlobalAppStatePropertyParameters<
-      GlobalAppStatePropertyValue,
-      T
-    >["controlContext"],
-      value: GlobalAppStatePropertyValue,
+  static async serializeContext<T, C>(
+      controlContext: GlobalAppStatePropertyParameters<T, C>["controlContext"],
+      value: T,
       key: string,
-  ): Promise<T | null> {
+  ): Promise<C | undefined> {
     if (controlContext?.isSerializable) {
       if (controlContext.transformValue) {
         return await controlContext.transformValue(value)
@@ -221,8 +227,9 @@ class GlobalAppStateProperty<T = GlobalAppStatePropertyValue, C = T> {
       console.warn(
           `GlobalAppState.${key}: controlContext.isSerializable is true but controlContext.transformValue is not defined!`,
       )
+      return (value as unknown) as C
     }
-    return null
+    return undefined
   }
 }
 

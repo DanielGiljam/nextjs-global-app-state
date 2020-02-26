@@ -1,13 +1,13 @@
-import React, {Context, createContext} from "react"
+import React, {Context, ReactNode, createContext} from "react"
 
-import {HydratedState} from "./GlobalAppState"
+import {GlobalAppStateProxy} from "./GlobalAppState"
 
 interface GlobalAppStateContextProviderProps {
-  globalAppState: HydratedState;
-  children: React.ReactNode;
+  globalAppState: GlobalAppStateProxy;
+  children: ReactNode;
 }
 
-export let GlobalAppStateContext: Context<HydratedState>
+export let GlobalAppStateContext: Context<GlobalAppStateProxy>
 
 export function GlobalAppStateContextProvider({
   globalAppState,
