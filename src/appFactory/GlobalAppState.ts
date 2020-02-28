@@ -125,7 +125,7 @@ class GlobalAppState {
     })
     return {
       globalAppState: Object.fromEntries(hydratedStateChunks.flat()),
-      ...Object.fromEntries(hydratedContexts.flat()),
+      ...Object.fromEntries(hydratedContexts),
     }
   }
 
