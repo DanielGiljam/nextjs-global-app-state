@@ -1,5 +1,12 @@
 {
   "general": {
-    "siteName": "Next.js Global App State (suomi)"
+    "siteName": "Material-UI + React + Next.js malli",
+    "pageNames": {
+      "home": "koti",
+      "about": "meistä"
+    },
+    "templates": {
+      "thisIsTheXPage": "Tämä on %s -sivu"
+    }
   }
 }

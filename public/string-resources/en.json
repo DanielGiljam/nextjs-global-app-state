@@ -1,5 +1,52 @@
 {
   "general": {
-    "siteName": "Next.js Global App State (english)"
+    "siteName": "Material-UI + React + Next.js Template",
+    "pageNames": {
+      "home": "home",
+      "about": "about"
+    },
+    "templates": {
+      "thisIsTheXPage": "This is the %s -page",
+      "thisIsTheXExample": "This is an example of using dynamic routing. The query parameter is \"%s\"."
+    }
+  },
+  "header": {
+    "preferences": {
+      "lang": {
+        "label": "Language",
+        "option": {
+          "en": "English",
+          "sv": "Svenska",
+          "fi": "Suomi"
+        }
+      },
+      "theme": {
+        "label": "Theme",
+        "option": {
+          "auto": "Auto",
+          "light": "Light",
+          "dark": "Dark"
+        }
+      },
+      "cookieConsent": {
+        "label": "Cookie Consent",
+        "state": {
+          "positive": "You are giving consent to cookies.",
+          "negative": "You haven't given consent to cookies."
+        },
+        "action": {
+          "positive": "Allow cookies",
+          "negative": "Revoke consent"
+        }
+      }
+    }
+  },
+  "example": {
+    "thisIsNullExample": "This is an example of using dynamic routing, although there is no query parameter."
+  },
+  "cookieConsentSnackbar": {
+    "message": "This website uses cookies in order to provide a faster, more customized user experience. Is it okay if we proceed in using cookies?",
+    "yes": "Yes, whatever",
+    "no": "No, don't use cookies"
   }
 }

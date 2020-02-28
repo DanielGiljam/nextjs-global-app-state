@@ -1,25 +1,15 @@
-import React, {Fragment} from "react"
+import {Fragment} from "react"
 
-import __document, {
-  DocumentContext,
-  DocumentInitialProps,
-  Head,
-  Html,
-  Main,
-  NextScript,
-} from "next/document"
+import __document, {Head, Html, Main, NextScript} from "next/document"
 
 import ServerStyleSheets from "@material-ui/styles/ServerStyleSheets"
 
 /*
- * Material-UI integration achieved thanks to this example: https://github.com/mui-org/material-ui/tree/master/examples/nextjs 2020-02-12
+ * Material-UI integration achieved thanks to this example: https://github.com/mui-org/material-ui/tree/master/examples/nextjs 2019-09-13
  */
 
-// eslint-disable-next-line @typescript-eslint/class-name-casing
 class _document extends __document {
-  static async getInitialProps(
-      ctx: DocumentContext,
-  ): Promise<DocumentInitialProps> {
+  static async getInitialProps(ctx) {
     /* Resolution order
      *
      * On the server:
@@ -58,7 +48,7 @@ class _document extends __document {
       ...initialProps,
       // Styles fragment is rendered after the app and page rendering finish.
       styles: [
-        <Fragment key={"styles"}>
+        <Fragment key="styles">
           {initialProps.styles}
           {sheets.getStyleElement()}
         </Fragment>,
@@ -66,19 +56,17 @@ class _document extends __document {
     }
   }
 
-  render(): JSX.Element {
+  render() {
     return (
       <Html>
         <Head>
           <link
-            rel={"stylesheet"}
-            href={
-              "https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap"
-            }
+            rel="stylesheet"
+            href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap"
           />
           <link
-            rel={"stylesheet"}
-            href={"https://fonts.googleapis.com/icon?family=Material+Icons"}
+            rel="stylesheet"
+            href="https://fonts.googleapis.com/icon?family=Material+Icons"
           />
         </Head>
         <body>
