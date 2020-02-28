@@ -3,6 +3,7 @@ import {IncomingMessage} from "http"
 import {Provider} from "react"
 
 import GlobalAppStateProperty, {
+  PropertyValueType,
   ContextValueType,
   GlobalAppStatePropertySetter,
   GlobalAppStatePropertyParameters,
@@ -149,16 +150,18 @@ class GlobalAppState {
     )
     return await Promise.all(initializedStateChunkPromises).then(
         (initializedStateChunks) => {
+          let prevValue: PropertyValueType | Set<PropertyValueType>
           const initializedState = initializedStateChunks
               .flat()
               .filter(([key, value]) => {
+                prevValue = hydratedState.globalAppState[key]
                 if (value instanceof Set) {
                   return (
-                    value.size === hydratedState[key].size &&
-                Array.from(value).every((v) => hydratedState[key].has(v))
+                    value.size === prevValue.size &&
+                Array.from(value).every((v) => prevValue.has(v))
                   )
                 } else {
-                  return value === hydratedState[key]
+                  return value === prevValue
                 }
               })
           if (initializedState.length || initializedContexts.length) {
