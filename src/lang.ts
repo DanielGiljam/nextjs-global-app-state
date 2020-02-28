@@ -144,6 +144,7 @@ function lang({
 }: LangOptions): GlobalAppStatePropertyParameters<string, Strings> {
   return {
     key: "lang",
+    keyPlural: "languages",
     defaultValue: defaultLang,
     defaultValues: new Set<string>(defaultSupportedLanguages),
     initializeValue: {
