@@ -154,8 +154,8 @@ class GlobalAppStateProperty<T = PropertyValueType, C = ContextValueType> {
             GlobalAppStateErrors.AMBIGUOUS_IS_SERIALIZABLE,
             this.key,
         )
+        this.state.contextValue = (this.state.value as unknown) as C
       }
-      this.state.contextValue = (this.state.value as unknown) as C
     }
   }
 
@@ -172,9 +172,13 @@ class GlobalAppStateProperty<T = PropertyValueType, C = ContextValueType> {
     if (
       !this.controlContext?.isSerializable &&
       !this.controlContext?.isAsync &&
-      this.controlContext?.transformValue
+      this.controlContext
     ) {
-      this.state.contextValue = this.controlContext.transformValue(value) as C
+      if (this.controlContext.transformValue) {
+        this.state.contextValue = this.controlContext.transformValue(value) as C
+      } else {
+        this.state.contextValue = (value as unknown) as C
+      }
     }
   }
 
@@ -196,19 +200,16 @@ class GlobalAppStateProperty<T = PropertyValueType, C = ContextValueType> {
     } else {
       this.state.value = existingValue
     }
-    if (this.controlContext) {
-      if (!this.controlContext.isSerializable && this.controlContext.isAsync) {
-        if (this.controlContext.transformValue) {
-          this.state.contextValue = await this.controlContext.transformValue(
-              this.state.value,
-          )
-        } else {
-          GlobalAppStateError.warn(
-              GlobalAppStateErrors.AMBIGUOUS_IS_ASYNC,
-              this.key,
-          )
-        }
+    if (!this.controlContext?.isSerializable && this.controlContext?.isAsync) {
+      if (this.controlContext.transformValue) {
+        this.state.contextValue = await this.controlContext.transformValue(
+            this.state.value,
+        )
       } else {
+        GlobalAppStateError.warn(
+            GlobalAppStateErrors.AMBIGUOUS_IS_ASYNC,
+            this.key,
+        )
         this.state.contextValue =
           existingContextValue || ((this.state.value as unknown) as C)
       }
