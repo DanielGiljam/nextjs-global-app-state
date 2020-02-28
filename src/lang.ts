@@ -154,7 +154,7 @@ function lang({
     setValue: setLangClientSide,
     controlContext: {
       transformValue: async (lang: string): Promise<Strings> =>
-        makeStrings(lang, getStrings),
+        await makeStrings(lang, getStrings),
       isSerializable: true,
       context: StringsContext,
     },
