@@ -64,18 +64,51 @@ function appFactory({
     contextKeys,
     contextProviders,
   ] = globalAppState.getContextKeysAndProviders()
+  console.group()
+  console.log("globalAppState outside of App:", globalAppState)
+  console.log("propertyKeys outside of App:", propertyKeys)
+  console.log("propertyKeysPlural outside of App:", propertyKeysPlural)
+  console.log(
+      "contextKeys and contextProviders outside of App:",
+      Object.fromEntries(
+          contextKeys.map((value, index) => [value, contextProviders[index]]),
+      ),
+  )
+  console.groupEnd()
 
   const App: App = function App({Component, ...props}) {
     const [state, setState] = useState(() => {
-      return globalAppState.initializeStateClientSidePhase1(
+      console.group()
+      console.info("initializeStateClientSidePhase1: started...")
+      console.log(
+          "dehydratedState as sent to initializeStateClientSidePhase1:",
           props.dehydratedState,
       )
+      const hydratedState = globalAppState.initializeStateClientSidePhase1(
+          props.dehydratedState,
+      )
+      console.log(
+          "hydratedState as returned by initializeStateClientSidePhase1:",
+          hydratedState,
+      )
+      console.info("initializeStateClientSidePhase1: finished.")
+      console.groupEnd()
+      return hydratedState
     })
 
     useEffect(() => {
+      console.info("initializeStateClientSidePhase2: started...")
+      console.log(
+          "hydratedState as sent to initializeStateClientSidePhase2:",
+          state,
+      )
       globalAppState
           .initializeStateClientSidePhase2(state)
           .then((deltaState) => {
+            console.log(
+                "deltaState as returned by initializeStateClientSidePhase2:",
+                deltaState,
+            )
             if (deltaState) {
               setState((prevState) => ({
                 ...prevState,
@@ -86,33 +119,61 @@ function appFactory({
                 },
               }))
             }
+            console.info("initializeStateClientSidePhase2: finished.")
           })
     }, [])
 
     const contexts = contextKeys.map((key) => state[key])
-    const ContextProviders = useMemo(
-        () => ({children}: {children: ReactNode}): JSX.Element =>
-          contextProviders.reduce(
-              (accumulator, ContextProvider, index) => (
-                <ContextProvider value={contexts[index]}>
-                  {accumulator}
-                </ContextProvider>
-              ),
-              <>{children}</>,
-          ),
-        contexts,
-    )
+    const ContextProviders = useMemo(() => {
+      console.group()
+      console.info("Generating ContextProviders component: started...")
+      console.log(
+          "\"contexts\" as received by ContextProviders -generator:",
+          contexts,
+      )
+      const ContextProviders = ({
+        children,
+      }: {
+        children: ReactNode;
+      }): JSX.Element =>
+        contextProviders.reduce(
+            (accumulator, ContextProvider, index) => (
+              <ContextProvider value={contexts[index]}>
+                {accumulator}
+              </ContextProvider>
+            ),
+            <>{children}</>,
+        )
+      console.info("Generating ContextProviders component: finished.")
+      console.groupEnd()
+      return ContextProviders
+    }, contexts)
 
     const setterDependencies = propertyKeysPlural.map(
         (key) => state.globalAppState[key],
     )
     const setters = useMemo(() => {
+      console.group()
+      console.info("Generating setter functions: started...")
+      console.log(
+          "setterDependencies as received by setter functions -generator:",
+          setterDependencies,
+      )
+      console.log(
+          "cookieConsent as received by setter functions -generator:",
+          state.globalAppState.cookieConsent,
+      )
       const setters: GlobalAppStateProxy = {}
       let index: number
       let propertyKey: string
       Object.entries(globalAppState.getSetters()).forEach(([key, setter]) => {
         index = setterNames.indexOf(key)
         propertyKey = propertyKeys[index]
+        console.log(`Generating ${key}(). Fixed arguments/parameters:`, {
+          // @ts-ignore
+          values: setterDependencies[index],
+          cookieConsent: state.globalAppState.cookieConsent,
+        })
         setters[key] = (value: PropertyValueType): void => {
           setter(
               // TODO: figure out this type issue (when constructing setters)!
@@ -132,10 +193,18 @@ function appFactory({
           })
         }
       })
+      console.info("Generating setter functions: finished.")
+      console.groupEnd()
       return setters
     }, [...setterDependencies, state.globalAppState.cookieConsent])
 
     useCallback(() => {
+      console.group()
+      console.info("cookieConsent callback: started...")
+      console.log("entirety of state as received by cookieConsent callback:", {
+        ...state,
+        globalAppState: {...state.globalAppState, ...setters},
+      })
       if (state.globalAppState.cookieConsent) {
         const cookies: Cookies = {}
         propertyKeys.forEach((key) => {
@@ -145,8 +214,27 @@ function appFactory({
       } else {
         setCookies({})
       }
+      console.info("cookieConsent callback: finished.")
+      console.groupEnd()
     }, [state.globalAppState.cookieConsent])
 
+    console.group()
+    console.log("globalAppState before render:", globalAppState)
+    console.log("propertyKeys before render:", propertyKeys)
+    console.log("propertyKeysPlural before render:", propertyKeysPlural)
+    console.log(
+        "contextKeys and contextProviders before render:",
+        Object.fromEntries(
+            contextKeys.map((value, index) => [value, contextProviders[index]]),
+        ),
+    )
+    console.log("\"contexts\" before render:", contexts)
+    console.log("setterDependencies before render:", setterDependencies)
+    console.log("entirety of state before render:", {
+      ...state,
+      globalAppState: {...state.globalAppState, ...setters},
+    })
+    console.groupEnd()
     return (
       <>
         {Head}
@@ -173,7 +261,13 @@ function appFactory({
     }
     let dehydratedState = {}
     if (ctx.req) {
+      console.info("initializeStateServerSide: started...")
       dehydratedState = await App.getInitialState(ctx.req)
+      console.log(
+          "dehydratedState as returned by initializeStateServerSide:",
+          dehydratedState,
+      )
+      console.info("initializeStateServerSide: finished.")
     }
     const urlParams = await App.getURLParams(ctx.query)
     return {pageProps, dehydratedState, urlParams}
