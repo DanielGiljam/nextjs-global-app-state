@@ -225,7 +225,7 @@ class GlobalAppStateProperty<T = PropertyValueType, C = ContextValueType> {
   }
 
   get setter(): GlobalAppStatePropertySetter<T, C> {
-    if (this.setValue && this.controlContext?.transformValue) {
+    if (this.setValue) {
       const setValue = this.setValue
       if (this.controlContext?.transformValue) {
         const transformValue = this.controlContext?.transformValue
