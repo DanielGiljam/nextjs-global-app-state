@@ -166,7 +166,7 @@ class GlobalAppState {
               })
           if (initializedState.length || initializedContexts.length) {
             return {
-              globalAppState: Object.entries(initializedState),
+              globalAppState: Object.fromEntries(initializedState),
               ...Object.fromEntries(initializedContexts),
             }
           }

@@ -3,13 +3,7 @@
 import {IncomingMessage} from "http"
 import {ParsedUrlQuery} from "querystring"
 
-import React, {
-  ReactNode,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from "react"
+import React, {ReactNode, useEffect, useMemo, useState} from "react"
 
 import {AppContext, AppInitialProps, AppProps} from "next/app"
 
@@ -123,6 +117,22 @@ function appFactory({
           })
     }, [])
 
+    useEffect(() => {
+      console.group()
+      console.info("cookieConsent callback: started...")
+      if (state.globalAppState.cookieConsent) {
+        const cookies: Cookies = {}
+        propertyKeys.forEach((key) => {
+          cookies[key] = state.globalAppState[key]
+        })
+        setCookies(cookies)
+      } else {
+        setCookies({})
+      }
+      console.info("cookieConsent callback: finished.")
+      console.groupEnd()
+    }, [state.globalAppState.cookieConsent])
+
     const contexts = contextKeys.map((key) => state[key])
     const ContextProviders = useMemo(() => {
       console.group()
@@ -197,26 +207,6 @@ function appFactory({
       console.groupEnd()
       return setters
     }, [...setterDependencies, state.globalAppState.cookieConsent])
-
-    useCallback(() => {
-      console.group()
-      console.info("cookieConsent callback: started...")
-      console.log("entirety of state as received by cookieConsent callback:", {
-        ...state,
-        globalAppState: {...state.globalAppState, ...setters},
-      })
-      if (state.globalAppState.cookieConsent) {
-        const cookies: Cookies = {}
-        propertyKeys.forEach((key) => {
-          cookies[key] = state.globalAppState[key]
-        })
-        setCookies(cookies)
-      } else {
-        setCookies({})
-      }
-      console.info("cookieConsent callback: finished.")
-      console.groupEnd()
-    }, [state.globalAppState.cookieConsent])
 
     console.group()
     console.log("globalAppState before render:", globalAppState)
