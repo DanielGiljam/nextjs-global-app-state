@@ -3,7 +3,6 @@ import {IncomingMessage} from "http"
 import {Provider} from "react"
 
 import GlobalAppStateProperty, {
-  PropertyValueType,
   ContextValueType,
   GlobalAppStatePropertySetter,
   GlobalAppStatePropertyParameters,
@@ -87,91 +86,70 @@ class GlobalAppState {
       req: IncomingMessage,
   ): Promise<DehydratedState> {
     const cookies = parseCookies(req.headers["cookie"])
-    const dehydratedStatePropertyPromises = this.properties.map((property) =>
-      (async (): Promise<DehydratedGlobalAppStateProperty & {key: string}> => {
+    const dehydratedState: DehydratedState = {}
+    const serverSideInitializationPromises = this.properties.map((property) =>
+      (async (): Promise<void> => {
         await property.initializeStateServerSide(cookies, req)
-        return {
-          key: property.key,
+        dehydratedState[property.key] = {
           value: property.value,
           values: Array.from(property.values),
           serializedContext: property.contextValue,
         }
       })(),
     )
-    return await Promise.all(dehydratedStatePropertyPromises).then(
-        (dehydratedStateProperties) => {
-          const dehydratedState: DehydratedState = {}
-          dehydratedStateProperties.forEach((property) => {
-            dehydratedState[property.key] = property
-          })
-          return dehydratedState
-        },
+    return await Promise.all(serverSideInitializationPromises).then(
+        () => dehydratedState,
     )
   }
 
   initializeStateClientSidePhase1(
       dehydratedState: DehydratedState,
   ): HydratedState {
-    const hydratedContexts: [string, ContextValueType?][] = []
-    const hydratedStateChunks = this.properties.map((property): [
-      string,
-      HydratedGlobalAppStatePropertyType
-    ][] => {
-      property.injectDehydratedState(dehydratedState[property.key])
-      hydratedContexts.push([property.key, property.contextValue])
-      return [
-        [property.key, property.value],
-        [property.keyPlural, property.values],
-      ]
+    const hydratedState: HydratedState = {globalAppState: {}}
+    let key: string
+    this.properties.forEach((property) => {
+      key = property.key
+      property.injectDehydratedState(dehydratedState[key])
+      hydratedState.globalAppState[key] = property.value
+      hydratedState.globalAppState[property.keyPlural] = property.values
+      hydratedState[key] = property.contextValue
     })
-    return {
-      globalAppState: Object.fromEntries(hydratedStateChunks.flat()),
-      ...Object.fromEntries(hydratedContexts),
-    }
+    return hydratedState
   }
 
   async initializeStateClientSidePhase2(
       hydratedState: HydratedState,
   ): Promise<HydratedState | undefined> {
-    const initializedContexts: [string, ContextValueType?][] = []
-    const initializedStateChunkPromises = this.properties.map((property) =>
-      (async (): Promise<[string, HydratedGlobalAppStatePropertyType][]> => {
+    const deltaState: HydratedState = {globalAppState: {}}
+    let key: string
+    let keyPlural: string
+    const phase2InitializationPromises = this.properties.map((property) =>
+      (async (): Promise<void> => {
+        key = property.key
+        keyPlural = property.keyPlural
         await property.initializeStateClientSide(
-            hydratedState.globalAppState[property.key],
-            hydratedState.globalAppState[property.keyPlural],
-            hydratedState[property.key],
+            hydratedState.globalAppState[key],
+            hydratedState.globalAppState[keyPlural],
         )
-        initializedContexts.push([property.key, property.contextValue])
-        return [
-          [property.key, property.value],
-          [property.keyPlural, property.values],
-        ]
+        if (property.value !== hydratedState.globalAppState[key]) {
+          deltaState.globalAppState[key] = property.value
+        }
+        if (
+          property.values.size !==
+            hydratedState.globalAppState[keyPlural].size ||
+          !Array.from(property.values).every((value) =>
+            hydratedState.globalAppState[keyPlural].has(value),
+          )
+        ) {
+          deltaState.globalAppState[keyPlural] = property.values
+        }
+        if (typeof property.contextValue !== "undefined") {
+          deltaState[key] = property.contextValue
+        }
       })(),
     )
-    return await Promise.all(initializedStateChunkPromises).then(
-        (initializedStateChunks) => {
-          let prevValue: PropertyValueType | Set<PropertyValueType>
-          const initializedState = initializedStateChunks
-              .flat()
-              .filter(([key, value]) => {
-                prevValue = hydratedState.globalAppState[key]
-                if (value instanceof Set) {
-                  return (
-                    value.size === prevValue.size &&
-                Array.from(value).every((v) => prevValue.has(v))
-                  )
-                } else {
-                  return value === prevValue
-                }
-              })
-          if (initializedState.length || initializedContexts.length) {
-            return {
-              globalAppState: Object.fromEntries(initializedState),
-              ...Object.fromEntries(initializedContexts),
-            }
-          }
-          return undefined
-        },
+    return await Promise.all(phase2InitializationPromises).then(
+        () => deltaState,
     )
   }
 

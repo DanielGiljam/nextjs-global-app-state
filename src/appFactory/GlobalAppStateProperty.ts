@@ -185,7 +185,6 @@ class GlobalAppStateProperty<T = PropertyValueType, C = ContextValueType> {
   async initializeStateClientSide(
       existingValue: T,
       existingValues: Set<T>,
-      existingContextValue: C,
   ): Promise<void> {
     if (this.getValues?.clientSide) {
       this.state.values = await this.getValues.clientSide()
@@ -210,9 +209,16 @@ class GlobalAppStateProperty<T = PropertyValueType, C = ContextValueType> {
             GlobalAppStateErrors.AMBIGUOUS_IS_ASYNC,
             this.key,
         )
-        this.state.contextValue =
-          existingContextValue || ((this.state.value as unknown) as C)
+        this.state.contextValue = (this.state.value as unknown) as C
       }
+    } else if (this.state.value !== existingValue) {
+      if (this.controlContext?.transformValue) {
+        this.state.contextValue = await this.controlContext.transformValue(
+            this.state.value,
+        )
+      }
+    } else {
+      this.state.contextValue = undefined
     }
   }
 
@@ -227,15 +233,25 @@ class GlobalAppStateProperty<T = PropertyValueType, C = ContextValueType> {
   get setter(): GlobalAppStatePropertySetter<T, C> {
     if (this.setValue) {
       const setValue = this.setValue
-      if (this.controlContext?.transformValue) {
-        const transformValue = this.controlContext?.transformValue
+      if (this.controlContext) {
+        if (this.controlContext.transformValue) {
+          const transformValue = this.controlContext.transformValue
+          return (
+              values: Set<T>,
+              cookieConsent: CookieConsent,
+              value,
+          ): Promise<C> =>
+            setValue(values, cookieConsent, value).then(() =>
+              transformValue(value),
+            )
+        }
         return (
             values: Set<T>,
             cookieConsent: CookieConsent,
             value,
         ): Promise<C> =>
-          setValue(values, cookieConsent, value).then(() =>
-            transformValue(value),
+          setValue(values, cookieConsent, value).then(
+              () => (value as unknown) as C,
           )
       }
       return setValue
