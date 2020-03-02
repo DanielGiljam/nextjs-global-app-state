@@ -30,7 +30,7 @@ function mergeOtherProperties(
     targetObject: Strings,
     structureSoFar: string,
 ): void {
-  for (const key in Object.keys(fallbackObject)) {
+  for (const key of Object.keys(fallbackObject)) {
     // Looking for properties that aren't objects
     if (typeof fallbackObject[key] !== "object") {
       const fallbackProperty = fallbackObject[key]
@@ -67,7 +67,7 @@ function checkForObjectProperties(
     targetObject: Strings,
     structureSoFar: string,
 ): void {
-  for (const key in Object.keys(fallbackObject)) {
+  for (const key of Object.keys(fallbackObject)) {
     // Looking for properties that are objects
     if (typeof fallbackObject[key] === "object") {
       const newFBO = fallbackObject[key]
