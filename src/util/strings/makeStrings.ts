@@ -115,14 +115,15 @@ function mergeResources(
 
 async function makeStrings(
     lang: string,
+    defaultLang: string,
     stringsFetcher: (lang: string) => Promise<Strings>,
 ): Promise<Strings> {
-  console.log("makeStrings: fetching strings for \"en\"...")
-  const en = await stringsFetcher("en")
-  if (lang === "en") return en
+  console.log(`makeStrings: fetching strings for "${defaultLang}"...`)
+  const fallbackResources = await stringsFetcher(defaultLang)
+  if (lang === defaultLang) return fallbackResources
   console.log(`makeStrings: fetching strings for "${lang}"...`)
-  const stringResources = await stringsFetcher(lang)
-  return mergeResources(en, stringResources, "stringResources")
+  const resources = await stringsFetcher(lang)
+  return mergeResources(fallbackResources, resources, "stringResources")
 }
 
 export default makeStrings
