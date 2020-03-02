@@ -36,9 +36,10 @@ export interface PropertySettersUnderConstruction {
 
 class GlobalAppState {
   private readonly properties: HydratedProperties = []
-  private readonly propertyKeys: string[] = []
-  private readonly propertyKeysPlural: string[] = []
-  private readonly setterNames: string[] = []
+
+  readonly propertyKeys: string[] = []
+  readonly propertyKeysPlural: string[] = []
+  readonly setterNames: string[] = []
 
   constructor(properties: DehydratedProperties) {
     const uniqueKeys: string[] = []
@@ -76,10 +77,6 @@ class GlobalAppState {
       }
     })
     return [contextKeys, providers]
-  }
-
-  getPropertyKeys(): [string[], string[], string[]] {
-    return [this.propertyKeys, this.propertyKeysPlural, this.setterNames]
   }
 
   async initializeStateServerSide(

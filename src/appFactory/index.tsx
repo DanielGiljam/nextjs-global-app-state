@@ -50,18 +50,11 @@ function appFactory({
 }: AppFactoryOptions = {}): App {
   const globalAppState = new GlobalAppState([...properties, cookieConsent])
   const [
-    propertyKeys,
-    propertyKeysPlural,
-    setterNames,
-  ] = globalAppState.getPropertyKeys()
-  const [
     contextKeys,
     contextProviders,
   ] = globalAppState.getContextKeysAndProviders()
   console.group()
   console.log("globalAppState outside of App:", globalAppState)
-  console.log("propertyKeys outside of App:", propertyKeys)
-  console.log("propertyKeysPlural outside of App:", propertyKeysPlural)
   console.log(
       "contextKeys and contextProviders outside of App:",
       Object.fromEntries(
@@ -122,7 +115,7 @@ function appFactory({
       console.info("cookieConsent callback: started...")
       if (state.globalAppState.cookieConsent) {
         const cookies: Cookies = {}
-        propertyKeys.forEach((key) => {
+        globalAppState.propertyKeys.forEach((key) => {
           cookies[key] = state.globalAppState[key]
         })
         setCookies(cookies)
@@ -159,7 +152,7 @@ function appFactory({
       return ContextProviders
     }, contexts)
 
-    const setterDependencies = propertyKeysPlural.map(
+    const setterDependencies = globalAppState.propertyKeysPlural.map(
         (key) => state.globalAppState[key],
     )
     const setters = useMemo(() => {
@@ -207,8 +200,6 @@ function appFactory({
 
     console.group()
     console.log("globalAppState before render:", globalAppState)
-    console.log("propertyKeys before render:", propertyKeys)
-    console.log("propertyKeysPlural before render:", propertyKeysPlural)
     console.log(
         "contextKeys and contextProviders before render:",
         Object.fromEntries(
