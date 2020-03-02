@@ -174,30 +174,30 @@ function appFactory({
           state.globalAppState.cookieConsent,
       )
       const setters: GlobalAppStateProxy = {}
-      let index: number
-      let propertyKey: string
       Object.entries(globalAppState.getSetters()).forEach(([key, setter]) => {
-        index = setterNames.indexOf(key)
-        propertyKey = propertyKeys[index]
         console.log(`Generating ${key}(). Fixed arguments/parameters:`, {
           // @ts-ignore
-          values: setterDependencies[index],
+          values: setterDependencies[globalAppState.setterNames.indexOf(key)],
           cookieConsent: state.globalAppState.cookieConsent,
         })
         setters[key] = (value: PropertyValueType): void => {
           setter(
               // TODO: figure out this type issue (when constructing setters)!
               // @ts-ignore
-              setterDependencies[index],
+              setterDependencies[globalAppState.setterNames.indexOf(key)],
               state.globalAppState.cookieConsent,
               value,
           ).then((contextValue: ContextValueType | undefined) => {
             setState((prevState) => ({
               ...prevState,
-              [propertyKey]: contextValue,
+              [globalAppState.propertyKeys[
+                  globalAppState.setterNames.indexOf(key)
+              ]]: contextValue,
               globalAppState: {
                 ...prevState.globalAppState,
-                [propertyKey]: value,
+                [globalAppState.propertyKeys[
+                    globalAppState.setterNames.indexOf(key)
+                ]]: value,
               },
             }))
           })

@@ -106,13 +106,11 @@ class GlobalAppState {
       dehydratedState: DehydratedState,
   ): HydratedState {
     const hydratedState: HydratedState = {globalAppState: {}}
-    let key: string
     this.properties.forEach((property) => {
-      key = property.key
-      property.injectDehydratedState(dehydratedState[key])
-      hydratedState.globalAppState[key] = property.value
+      property.injectDehydratedState(dehydratedState[property.key])
+      hydratedState.globalAppState[property.key] = property.value
       hydratedState.globalAppState[property.keyPlural] = property.values
-      hydratedState[key] = property.contextValue
+      hydratedState[property.key] = property.contextValue
     })
     return hydratedState
   }
@@ -121,30 +119,26 @@ class GlobalAppState {
       hydratedState: HydratedState,
   ): Promise<HydratedState | undefined> {
     const deltaState: HydratedState = {globalAppState: {}}
-    let key: string
-    let keyPlural: string
     const phase2InitializationPromises = this.properties.map((property) =>
       (async (): Promise<void> => {
-        key = property.key
-        keyPlural = property.keyPlural
         await property.initializeStateClientSide(
-            hydratedState.globalAppState[key],
-            hydratedState.globalAppState[keyPlural],
+            hydratedState.globalAppState[property.key],
+            hydratedState.globalAppState[property.keyPlural],
         )
-        if (property.value !== hydratedState.globalAppState[key]) {
-          deltaState.globalAppState[key] = property.value
+        if (property.value !== hydratedState.globalAppState[property.key]) {
+          deltaState.globalAppState[property.key] = property.value
         }
         if (
           property.values.size !==
-            hydratedState.globalAppState[keyPlural].size ||
+            hydratedState.globalAppState[property.keyPlural].size ||
           !Array.from(property.values).every((value) =>
-            hydratedState.globalAppState[keyPlural].has(value),
+            hydratedState.globalAppState[property.keyPlural].has(value),
           )
         ) {
-          deltaState.globalAppState[keyPlural] = property.values
+          deltaState.globalAppState[property.keyPlural] = property.values
         }
         if (typeof property.contextValue !== "undefined") {
-          deltaState[key] = property.contextValue
+          deltaState[property.key] = property.contextValue
         }
       })(),
     )
