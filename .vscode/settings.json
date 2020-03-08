@@ -5,8 +5,10 @@
         "Stateful",
         "esnext",
         "nextjs",
+        "npmjs",
         "serializable",
         "svenska",
-        "unfetch"
+        "unfetch",
+        "xstate"
     ]
 }

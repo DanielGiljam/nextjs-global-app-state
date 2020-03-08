@@ -8,11 +8,11 @@ import extendStringClass from "util/strings/extendStringClass"
 
 import responsiveFontSizes from "@material-ui/core/styles/responsiveFontSizes"
 import createMuiTheme from "@material-ui/core/styles/createMuiTheme"
-import {ThemeProvider} from "@material-ui/core/styles"
+import ThemeProvider from "@material-ui/core/styles/ThemeProvider"
 
 import Header from "components/header"
 import CookieConsentBar from "components/misc/cookie-consent-snackbar"
-import {CssBaseline} from "@material-ui/core"
+import CssBaseline from "@material-ui/core/CssBaseline"
 
 import fetch from "isomorphic-unfetch"
 
