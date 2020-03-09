@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - New `README.md`
+- New [documentation](https://github.com/DanielGiljam/nextjs-global-app-state/wiki)
 
 ## [1.0.0] - 2020-02-25
 
