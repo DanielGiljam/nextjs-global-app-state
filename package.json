@@ -16,7 +16,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "scripts/build.bash",
-    "test": "ts-node --skip-project test"
+    "test": "ts-node --skip-project test",
+    "prepare": "npm run build"
   },
   "devDependencies": {
     "@material-ui/core": "^4.9.2",
