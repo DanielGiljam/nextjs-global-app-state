@@ -17,20 +17,18 @@ As you can see, the list quickly gets quite involved. Right off the bat you're f
 
 The purpose of this library is to better get you past that mountain of features and onto developing the unique features and functionality of your website/application. If you're interested, keep reading!
 
-> Features such as the ones listed above, we call them **_global app state properties_**. Don't ask why.
+Features such as the ones listed above, we call them **_global app state properties_**. Don't ask why. Similarly, we refer to all those features combined (the part of the application that's responsible for language, theme, etc.) as the **_global app state_**. That's where the name of the library comes from. "Global" since language and theme — if we keep using them as example — needs to be known all over the application, and "state" because they are stateful properties. We know, the name is really generic and unspecific, almost to the degree of misleading, but for now you just have to deal with it. Might be subject to change later.
 
-Similarly, we refer to all those features combined (the part of the application that's responsible for language, theme, etc.) as the **_global app state_**. That's where the name of the library comes from. "Global" since language and theme — if we keep using them as example — needs to be known all over the application, and "state" because they are stateful properties. We know, the name is really generic and unspecific, almost to the degree of misleading, but for now you just have to deal with it. Might be subject to change later.
-
-Having said that, this library is not a replacement for state management solutions such as [Redux](https://redux.js.org/) or [xstate](https://xstate.js.org/). Well, what is this library then and what exactly does it do? Ok, here's a library features -section.
+This library is not a replacement for state management solutions such as [Redux](https://redux.js.org/) or [xstate](https://xstate.js.org/). You may be asking yourself, what is this library then and what exactly does it do? Here's a library features -section.
 
 ## Library Features
 
-- An interface that let's you design global app state properties
-- Some ready made global app state properties
+- An interface that lets you design global app state properties
+- A few ready-made global app state properties
 
 ## Pre-Requisites
 
-A Next.js project.
+A [Next.js](https://nextjs.org/) project.
 
 ## Getting Started
 
@@ -90,7 +88,7 @@ export default appFactory({
 });
 ```
 
-Every page/component in your Next.js project can now access the global app state. Here's a page that renders the state of `lang` and `theme` as text.
+Every page/component in your [Next.js](https://nextjs.org/) project can now access the global app state. Here's a page that renders the state of `lang` and `theme` as text.
 
 ```jsx
 import useGlobalAppState from "nextjs-global-app-state/useGlobalAppState";
