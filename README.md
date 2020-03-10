@@ -3,10 +3,10 @@
 You're creating a website or web application powered by [Next.js](https://nextjs.org/). You're ambitious — you want your website/web application to have all those fancy features that the triple-A sites and apps have, to be able to compete with them. We're talking about features such as
 
 - light and dark UI themes
-  - automatic theme selection
+  - automatic theme detection
     - based on system theme client-side
     - based on before/after sunrise/sunset server-side (or if system theme can't be determined client-side)
-  - feature which allows user to override auto selection and remember user preference in future sessions
+  - feature which allows user to override auto detection and remember user preference in future sessions
 - automatic locale (language) detection
   - locale-agnostic URLs where paths can be prefixed with a lang code, but don't have to!
 - GDPR and CCPA compliance with minimal UX impact
@@ -24,7 +24,7 @@ This library is not a replacement for state management solutions such as [Redux]
 ## Library Features
 
 - An interface that lets you design global app state properties
-- A few ready-made global app state properties
+- A few ready-made global app state properties ([`lang`](https://github.com/DanielGiljam/nextjs-global-app-state/wiki/lang) and [`theme`](https://github.com/DanielGiljam/nextjs-global-app-state/wiki/theme))
 
 ## Pre-Requisites
 
@@ -55,7 +55,7 @@ import CssBaseline from "@material-ui/core/CssBaseline";
 
 import fetch from "isomorphic-fetch";
 
-// `lang` expects that provide a function for fetching string resources.
+// `lang` expects that provide a function for fetching string resources
 async function getStrings(lang) {
   return await fetch(
     `${process.env.ASSET_PREFIX}/string-resources/${lang}.json`
