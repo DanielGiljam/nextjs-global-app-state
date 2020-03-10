@@ -81,10 +81,10 @@ function getThemeTypeAuto(): "light" | "dark" {
   return "light"
 }
 
-export type ThemeType = "auto" | "light" | "dark"
+type ThemeType = "auto" | "light" | "dark"
 
 interface ThemeOptions {
-  createTheme(themeType: ThemeType): Theme;
+  createTheme(themeType: "light" | "dark"): Theme;
   ThemeProvider: Provider<Theme>;
 }
 
