@@ -126,22 +126,66 @@ async function setLangClientSide(
   }
 }
 
+/**
+ * An object literal. All fields are required,
+ * except `getSupportedLanguages` and its fields.
+ */
 interface LangOptions {
+  /**
+   * A default language (provided as a lang code)
+   * to fall back to if both restoring language
+   * preference and auto-detecting language
+   * was unsuccessful. `defaultLang` must
+   * exist in `defaultSupportedLanguages`.
+   */
   defaultLang: string;
+  /**
+   * An array of lang codes representing the languages
+   * that your site/application supports.
+   */
   defaultSupportedLanguages: string[];
-  getStrings(lang: string): Promise<Strings>;
+  /**
+   * A function that retrieves string resources.
+   * @param lang A lang code
+   * @returns String resources for that lang code, either synchronously or asynchronously
+   */
+  getStrings(lang: string): Strings | Promise<Strings>;
+  /**
+   * An object literal containing functions that retrieve
+   * arrays of lang codes representing the languages
+   * that you site/application supports. The arrays
+   * returned by these functions override
+   * `defaultSupportedLanguages`.
+   */
   getSupportedLanguages?: {
-    serverSide?(): Promise<Set<string>>;
-    clientSide?(): Promise<Set<string>>;
+    /**
+     * A function for retrieving the array of lang codes server-side.
+     * @returns The array of lang codes either synchronously or asynchronously
+     */
+    serverSide?(): string[] | Promise<string[]>;
+    /**
+     * A function for retrieving the array of lang codes client-side.
+     * @returns The array of lang codes either synchronously or asynchronously
+     */
+    clientSide?(): string[] | Promise<string[]>;
   };
 }
 
-function lang({
-  defaultLang,
-  defaultSupportedLanguages,
-  getStrings,
-  getSupportedLanguages,
-}: LangOptions): GlobalAppStatePropertyParameters<string, Strings> {
+/**
+ * A ready-made global app state property which constitutes
+ * a minimal yet powerful internationalization solution.
+ * @param options A `LangOptions` object
+ * @returns A `GlobalAppStatePropertyParameters` object
+ */
+function lang(
+    options: LangOptions,
+): GlobalAppStatePropertyParameters<string, Strings> {
+  const {
+    defaultLang,
+    defaultSupportedLanguages,
+    getStrings,
+    getSupportedLanguages,
+  } = options
   return {
     key: "lang",
     keyPlural: "languages",

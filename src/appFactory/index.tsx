@@ -21,9 +21,31 @@ import {GlobalAppStateContextProvider} from "./GlobalAppStateContext"
 import cookieConsent from "../cookieConsent"
 import {setCookies, Cookies} from "../util/cookies"
 
+/**
+ * An object literal. All fields are optional.
+ */
 interface AppFactoryOptions {
+  /**
+   * You can pass a Next.js `Head` component here
+   * that will be included in every page.
+   */
   Head?: ReactNode;
+  /**
+   * Any component that wraps its children. Here
+   * you can inject UI that persists across all
+   * the site's pages.
+   */
   Wrapper?: (props: {children: ReactNode}) => JSX.Element;
+  /**
+   * A `getInitialProps` function for the `App` component.
+   */
+  getInitialProps?: (appContext: AppContext) => Promise<AppInitialProps>;
+  /**
+   * An array of objects describing the global app state properties
+   * that `appFactory` will implement into the `App` component.
+   * Read the documentation for `GlobalAppStatePropertyParameters`
+   * for more on what the objects should look like.
+   */
   properties?: GlobalAppStatePropertyParameters[];
 }
 
@@ -43,11 +65,22 @@ interface URLParams {
   lang?: string;
 }
 
-function appFactory({
-  Head,
-  Wrapper = ({children}: {children: ReactNode}): JSX.Element => <>{children}</>,
-  properties = [],
-}: AppFactoryOptions = {}): App {
+/**
+ * Function that returns a Next.js custom `App` component.
+ * Takes an optional argument where you can specify
+ * options to customize the output of the factory.
+ * @param options An optional argument where you can specify options to customize the output of the factory
+ * @return A Next.js custom `App` component
+ */
+function appFactory(options?: AppFactoryOptions): App {
+  const {
+    Head,
+    Wrapper = ({children}: {children: ReactNode}): JSX.Element => (
+      <>{children}</>
+    ),
+    getInitialProps,
+    properties = [],
+  } = options || {}
   const globalAppState = new GlobalAppState([...properties, cookieConsent])
   const [
     contextKeys,
@@ -229,13 +262,16 @@ function appFactory({
     )
   }
 
-  App.getInitialProps = async ({
-    Component,
-    ctx,
-  }): Promise<AppInitialPropsExtended> => {
+  App.getInitialProps = async (
+    appContext,
+  ): Promise<AppInitialPropsExtended> => {
     let pageProps = {}
+    if (getInitialProps) {
+      pageProps = await (await getInitialProps(appContext)).pageProps
+    }
+    const {Component, ctx} = appContext
     if (Component.getInitialProps) {
-      pageProps = await Component.getInitialProps(ctx)
+      pageProps = {...pageProps, ...(await Component.getInitialProps(ctx))}
     }
     let dehydratedState = {}
     if (ctx.req) {

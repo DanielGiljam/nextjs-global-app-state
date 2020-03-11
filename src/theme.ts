@@ -112,15 +112,36 @@ function getThemeTypeAuto(): "light" | "dark" {
 
 type ThemeType = "auto" | "light" | "dark"
 
+/**
+ * An object literal. All fields are required.
+ */
 interface ThemeOptions {
+  /**
+   * A function that creates a theme. The function must be synchronous.
+   * @param themeType Either `"light"` or `"dark"`
+   * @returns A theme
+   */
   createTheme(themeType: "light" | "dark"): Theme;
+  /**
+   * A `Context.Provider` for a `Context` that holds a theme. It doesn't
+   * strictly have to be a `Context.Provider`. It just has to be
+   * similar enough — more specifically, it has to be a
+   * component that wraps its children and takes
+   * a prop called `value`.
+   */
   ThemeProvider: Provider<Theme>;
 }
 
-function theme({
-  createTheme,
-  ThemeProvider,
-}: ThemeOptions): GlobalAppStatePropertyParameters<ThemeType, Theme> {
+/**
+ * A ready-made global app state property which auto-detects
+ * system theme or persists explicit preference across sessions.
+ * @param options A `ThemeOptions` object
+ * @returns A `GlobalAppStatePropertyParameters` object
+ */
+function theme(
+    options: ThemeOptions,
+): GlobalAppStatePropertyParameters<ThemeType, Theme> {
+  const {createTheme, ThemeProvider} = options
   return {
     key: "theme",
     defaultValue: "auto",
