@@ -8,7 +8,7 @@ import extendStringClass from "util/strings/extendStringClass"
 
 import responsiveFontSizes from "@material-ui/core/styles/responsiveFontSizes"
 import createMuiTheme from "@material-ui/core/styles/createMuiTheme"
-import ThemeProvider from "@material-ui/core/styles/ThemeProvider"
+import {ThemeProvider} from "@material-ui/core/styles"
 
 import Header from "components/header"
 import CookieConsentBar from "components/misc/cookie-consent-snackbar"

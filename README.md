@@ -50,8 +50,8 @@ import { appFactory, lang, theme } from "nextjs-global-app-state";
 // The global app state property `theme` is designed to integrate well with Material-UI
 import responsiveFontSizes from "@material-ui/core/styles/responsiveFontSizes";
 import createMuiTheme from "@material-ui/core/styles/createMuiTheme";
-import ThemeProvider from "@material-ui/core/styles/ThemeProvider";
 import CssBaseline from "@material-ui/core/CssBaseline";
+import { ThemeProvider } from "@material-ui/core/styles";
 
 import fetch from "isomorphic-fetch";
 
