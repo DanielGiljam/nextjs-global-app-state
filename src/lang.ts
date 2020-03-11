@@ -9,10 +9,9 @@ import {GlobalAppStatePropertyParameters} from "./appFactory/GlobalAppStatePrope
 import webStorage from "./util/web-storage"
 import setCookie from "./util/cookies/set-cookie"
 
-// TODO: see if "q" can be parsed further in parseAcceptLanguageHeader()!
 function parseAcceptLanguageHeader(
     acceptLanguageHeader: string,
-): {lang: string; flavor: string; q: string}[] {
+): {lang: string; flavor?: string; q?: number}[] {
   const parsedAcceptLanguagesHeader = []
   const regExp = /([^-,;]+)(?:-([^-,;]+(?:-[^-,;]+)*))?(?:;q=(\d(?:\.\d+)?))?,?/g
   let array
@@ -20,7 +19,7 @@ function parseAcceptLanguageHeader(
     parsedAcceptLanguagesHeader.push({
       lang: array[1],
       flavor: array[2],
-      q: array[3],
+      q: array[3] ? parseInt(array[3]) : undefined,
     })
   }
   return parsedAcceptLanguagesHeader
