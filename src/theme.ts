@@ -26,7 +26,7 @@ async function getThemeTypeServerSide(
   let cookie
   if ((cookie = cookies.theme)) {
     console.log("getThemeTypeServerSide: found a theme type cookie:", {
-      themeType: cookie,
+      theme: cookie,
     })
     if (isThemeType(supportedThemeTypes, cookie)) {
       console.log(`getThemeTypeServerSide: returning "${cookie}"`)
@@ -88,7 +88,9 @@ function getThemeTypeAutoHelper1(): "light" | "dark" {
 function getThemeTypeAutoHelper2(
     prefersColorScheme: "light" | "dark",
 ): boolean {
-  if (window.matchMedia(`(prefers-color-scheme: ${prefersColorScheme})`)) {
+  if (
+    window.matchMedia(`(prefers-color-scheme: ${prefersColorScheme})`).matches
+  ) {
     console.log(
         `getThemeTypeAuto: client's browser prefers ${prefersColorScheme} theme.`,
     )

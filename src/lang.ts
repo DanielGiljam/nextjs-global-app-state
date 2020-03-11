@@ -19,7 +19,7 @@ function parseAcceptLanguageHeader(
     parsedAcceptLanguagesHeader.push({
       lang: array[1],
       flavor: array[2],
-      q: array[3] ? parseInt(array[3]) : undefined,
+      q: array[3] ? parseFloat(array[3]) : undefined,
     })
   }
   return parsedAcceptLanguagesHeader
