@@ -24,9 +24,9 @@ async function getThemeTypeServerSide(
       supportedThemeTypes,
   )
   let cookie
-  if ((cookie = cookies["theme-type"])) {
+  if ((cookie = cookies.theme)) {
     console.log("getThemeTypeServerSide: found a theme type cookie:", {
-      "theme-type": cookie,
+      themeType: cookie,
     })
     if (isThemeType(supportedThemeTypes, cookie)) {
       console.log(`getThemeTypeServerSide: returning "${cookie}"`)
@@ -71,42 +71,63 @@ async function setThemeTypeClientSide(
   }
   console.log(`setThemeType: setting theme type to "${themeType}"...`)
   webStorage.set("themeType", themeType)
-  if (cookieConsent) {
-    setCookie("theme-type", themeType)
-    console.log(`setCookie: key "theme-type" was set to value "${themeType}".`)
-  }
+  setCookie("theme", themeType)
+  console.log(`setCookie: key "theme" was set to value "${themeType}".`)
 }
 
-function getThemeTypeAuto(): "light" | "dark" {
-  if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
-    console.log("getThemeTypeAuto: client's browser prefers dark theme")
-    console.log(
-        "getThemeTypeAuto: setting theme to dark based on client's browser's preference",
-    )
-    return "dark"
-  }
-  if (window.matchMedia("(prefers-color-scheme: light)").matches) {
-    console.log("getThemeTypeAuto: client's browser prefers light theme")
-    console.log(
-        "getThemeTypeAuto: setting theme to light based on client's browser's preference",
-    )
-    return "light"
-  }
-  if (window.matchMedia("(prefers-color-scheme: no-preference)").matches) {
-    console.log(
-        "getThemeTypeAuto: client's browser doesn't have a theme preference",
-    )
-  } else {
-    console.log(
-        "getThemeTypeAuto: client's browser doesn't express any kind of theme preference",
-    )
-  }
+function getThemeTypeAutoHelper1(): "light" | "dark" {
   const date = new Date()
   const hours = date.getHours()
   const themeType: "light" | "dark" = hours < 6 || hours > 18 ? "dark" : "light"
   console.log(
-      `getThemeTypeAuto: setting theme to ${themeType} based on local time (${date.toLocaleTimeString()})`,
+      `getThemeTypeAuto: setting theme to ${themeType} based on local time (${date.toLocaleTimeString()}).`,
   )
+  return themeType
+}
+
+function getThemeTypeAutoHelper2(
+    prefersColorScheme: "light" | "dark",
+): boolean {
+  if (window.matchMedia(`(prefers-color-scheme: ${prefersColorScheme})`)) {
+    console.log(
+        `getThemeTypeAuto: client's browser prefers ${prefersColorScheme} theme.`,
+    )
+    console.log(
+        `getThemeTypeAuto: setting theme to ${prefersColorScheme} based on client's browser's preference.`,
+    )
+    setCookie("theme", prefersColorScheme)
+    console.log(
+        `setCookie: key "theme" was set to value "${prefersColorScheme}".`,
+    )
+    return true
+  }
+  return false
+}
+
+function getThemeTypeAuto(): "light" | "dark" {
+  if (typeof window === "undefined") {
+    console.log("getThemeTypeAuto: environment isn't the client's.")
+    return getThemeTypeAutoHelper1()
+  }
+  let themeType: "light" | "dark"
+  if (getThemeTypeAutoHelper2((themeType = "light"))) {
+    return themeType
+  }
+  if (getThemeTypeAutoHelper2((themeType = "dark"))) {
+    return themeType
+  }
+  if (window.matchMedia("(prefers-color-scheme: no-preference)").matches) {
+    console.log(
+        "getThemeTypeAuto: client's browser doesn't have a theme preference.",
+    )
+  } else {
+    console.log(
+        "getThemeTypeAuto: client's browser doesn't express any kind of theme preference.",
+    )
+  }
+  themeType = getThemeTypeAutoHelper1()
+  setCookie("theme", themeType)
+  console.log(`setCookie: key "theme" was set to value "${themeType}".`)
   return themeType
 }
 

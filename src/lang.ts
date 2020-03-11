@@ -120,10 +120,8 @@ async function setLangClientSide(
   }
   console.log(`setLang: setting language to "${lang}"...`)
   webStorage.set("lang", lang)
-  if (cookieConsent) {
-    setCookie("lang", lang)
-    console.log(`setCookie: key "lang" was set to value "${lang}".`)
-  }
+  setCookie("lang", lang)
+  console.log(`setCookie: key "lang" was set to value "${lang}".`)
 }
 
 /**

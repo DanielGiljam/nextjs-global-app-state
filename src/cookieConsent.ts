@@ -7,7 +7,7 @@ async function getCookieConsentServerSide(
     _defaultValue: CookieConsent,
     cookies: Cookies,
 ): Promise<boolean> {
-  return cookies["cookie-consent"] === "true"
+  return cookies.cookieConsent === "true"
 }
 
 function parseCookieConsent(
