@@ -12,8 +12,6 @@ import GlobalAppStateProperty, {
 
 import parseCookies from "../util/cookies/parse-cookies"
 
-import GlobalAppStateError, {GlobalAppStateErrors} from "./GlobalAppStateError"
-
 type DehydratedProperties = GlobalAppStatePropertyParameters[]
 type HydratedProperties = GlobalAppStateProperty[]
 
@@ -46,22 +44,37 @@ class GlobalAppState {
     let key: string
     let keyPlural: string
     let setterName: string
+    let globalAppStateProperty: GlobalAppStateProperty
     properties.forEach((property, index) => {
-      key = property.key
-      if (uniqueKeys.includes(key)) {
-        throw new GlobalAppStateError(GlobalAppStateErrors.NON_UNIQUE_KEY, key)
+      try {
+        key = property.key
+        if (uniqueKeys.includes(key)) {
+          throw new Error(
+              `[${key}]: This key already refers to another global app state property.`,
+          )
+        }
+        uniqueKeys.push(key)
+        globalAppStateProperty = new GlobalAppStateProperty(property)
+        this.properties.push(globalAppStateProperty)
+        this.propertyKeys.push(key)
+        keyPlural = this.properties[index].keyPlural
+        setterName = this.properties[index].setterName
+        if (uniqueKeys.includes(keyPlural) || uniqueKeys.includes(setterName)) {
+          throw new Error(
+              `[${key}]: This key's plural form "${keyPlural}" already refers to another global app state property.`,
+          )
+        }
+        if (uniqueKeys.includes(setterName)) {
+          throw new Error(
+              `[${key}]: This key's setterName "${setterName}" already refers to another global app state property.`,
+          )
+        }
+        uniqueKeys.push(keyPlural, setterName)
+        this.propertyKeysPlural.push(keyPlural)
+        this.setterNames.push(setterName)
+      } catch (error) {
+        console.error(error.stack)
       }
-      uniqueKeys.push(key)
-      this.properties.push(new GlobalAppStateProperty(property))
-      this.propertyKeys.push(key)
-      keyPlural = this.properties[index].keyPlural
-      setterName = this.properties[index].setterName
-      if (uniqueKeys.includes(keyPlural) || uniqueKeys.includes(setterName)) {
-        throw new GlobalAppStateError(GlobalAppStateErrors.NON_UNIQUE_KEY, key)
-      }
-      uniqueKeys.push(keyPlural, setterName)
-      this.propertyKeysPlural.push(keyPlural)
-      this.setterNames.push(setterName)
     })
   }
 

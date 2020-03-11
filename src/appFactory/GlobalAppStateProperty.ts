@@ -2,8 +2,6 @@ import {IncomingMessage} from "http"
 
 import {Context, Provider} from "react"
 
-import GlobalAppStateError, {GlobalAppStateErrors} from "./GlobalAppStateError"
-
 import {Cookies, CookieConsent} from "../util/cookies"
 
 export type PropertyValueType = any // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -246,9 +244,8 @@ class GlobalAppStateProperty<T = PropertyValueType, C = ContextValueType> {
         this[key as keyof this] = value
       })
     } else {
-      throw new GlobalAppStateError(
-          GlobalAppStateErrors.PROPERTY_CONSTRUCTION_ERROR,
-          key,
+      throw new Error(
+          `[${key}]: defaultValue must exist in defaultValues when defining a global app state property.`,
       )
     }
   }
@@ -258,24 +255,45 @@ class GlobalAppStateProperty<T = PropertyValueType, C = ContextValueType> {
       req: IncomingMessage,
   ): Promise<void> {
     if (this.getValues?.serverSide) {
-      this.state.values = new Set<T>(await this.getValues.serverSide())
+      try {
+        const values = await this.getValues.serverSide()
+        this.state.values = new Set<T>(values)
+      } catch (error) {
+        console.error("[%s]: getValues.serverSide() rejected:", this.key)
+        console.error(error.stack)
+      }
     }
     if (this.initializeValue?.serverSide) {
-      this.state.value = await this.initializeValue.serverSide(
-          this.state.values,
-          this.state.value,
-          cookies,
-          req,
-      )
+      try {
+        const value = await this.initializeValue.serverSide(
+            this.state.values,
+            this.state.value,
+            cookies,
+            req,
+        )
+        this.state.value = value
+      } catch (error) {
+        console.error("[%s]: initializeValue.serverSide() rejected:", this.key)
+        console.error(error.stack)
+      }
     }
     if (this.controlContext?.isSerializable) {
       if (this.controlContext.transformValue) {
-        this.state.contextValue = await this.controlContext.transformValue(
-            this.state.value,
-        )
+        try {
+          const contextValue = await this.controlContext.transformValue(
+              this.state.value,
+          )
+          this.state.contextValue = contextValue
+        } catch (error) {
+          console.error(
+              "[%s]: controlContext.transformValue() rejected:",
+              this.key,
+          )
+          console.error(error.stack)
+        }
       } else {
-        GlobalAppStateError.warn(
-            GlobalAppStateErrors.AMBIGUOUS_IS_SERIALIZABLE,
+        console.warn(
+            "[%s]: controlContext.isSerializable is true but controlContext.transformValue is not defined.",
             this.key,
         )
         this.state.contextValue = (this.state.value as unknown) as C
@@ -299,7 +317,16 @@ class GlobalAppStateProperty<T = PropertyValueType, C = ContextValueType> {
       this.controlContext
     ) {
       if (this.controlContext.transformValue) {
-        this.state.contextValue = this.controlContext.transformValue(value) as C
+        try {
+          const contextValue = this.controlContext.transformValue(value)
+          this.state.contextValue = contextValue as C
+        } catch (error) {
+          console.error(
+              "[%s.injectDehydratedState]: controlContext.transformValue() rejected:",
+              this.key,
+          )
+          console.error(error.stack)
+        }
       } else {
         this.state.contextValue = (value as unknown) as C
       }
@@ -311,35 +338,65 @@ class GlobalAppStateProperty<T = PropertyValueType, C = ContextValueType> {
       existingValues: Set<T>,
   ): Promise<void> {
     if (this.getValues?.clientSide) {
-      this.state.values = new Set<T>(await this.getValues.clientSide())
+      try {
+        const values = await this.getValues.clientSide()
+        this.state.values = new Set<T>(values)
+      } catch (error) {
+        console.error("[%s]: getValues.clientSide() rejected:", this.key)
+        console.error(error.stack)
+      }
     } else {
       this.state.values = existingValues
     }
     if (this.initializeValue?.clientSide) {
-      this.state.value = await this.initializeValue.clientSide(
-          this.state.values,
-          existingValue,
-      )
+      try {
+        const value = await this.initializeValue.clientSide(
+            this.state.values,
+            existingValue,
+        )
+        this.state.value = value
+      } catch (error) {
+        console.error("[%s]: initializeValue.clientSide() rejected:", this.key)
+        console.error(error.stack)
+      }
     } else {
       this.state.value = existingValue
     }
     if (!this.controlContext?.isSerializable && this.controlContext?.isAsync) {
       if (this.controlContext.transformValue) {
-        this.state.contextValue = await this.controlContext.transformValue(
-            this.state.value,
-        )
+        try {
+          const contextValue = await this.controlContext.transformValue(
+              this.state.value,
+          )
+          this.state.contextValue = contextValue
+        } catch (error) {
+          console.error(
+              "[%s.initializeStateClientSide]: controlContext.transformValue() rejected:",
+              this.key,
+          )
+          console.error(error.stack)
+        }
       } else {
-        GlobalAppStateError.warn(
-            GlobalAppStateErrors.AMBIGUOUS_IS_ASYNC,
+        console.warn(
+            "[%s]: controlContext.isAsync is true but controlContext.transformValue is not defined.",
             this.key,
         )
         this.state.contextValue = (this.state.value as unknown) as C
       }
     } else if (this.state.value !== existingValue) {
       if (this.controlContext?.transformValue) {
-        this.state.contextValue = await this.controlContext.transformValue(
-            this.state.value,
-        )
+        try {
+          const contextValue = await this.controlContext.transformValue(
+              this.state.value,
+          )
+          this.state.contextValue = contextValue
+        } catch (error) {
+          console.error(
+              "[%s.initializeStateClientSide]: controlContext.transformValue() rejected:",
+              this.key,
+          )
+          console.error(error.stack)
+        }
       }
     } else {
       this.state.contextValue = undefined
