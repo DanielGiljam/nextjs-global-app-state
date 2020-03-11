@@ -25,7 +25,6 @@ import {
 import {GlobalAppStateContextProvider} from "./GlobalAppStateContext"
 
 import cookieConsent from "../cookieConsent"
-import {setCookies, Cookies} from "../util/cookies"
 
 /**
  * An object literal. All fields are optional.
@@ -114,18 +113,6 @@ function appFactory(options?: AppFactoryOptions): App {
             }
           })
     }, [])
-
-    useEffect(() => {
-      if (state.globalAppState.cookieConsent) {
-        const cookies: Cookies = {}
-        globalAppState.propertyKeys.forEach((key) => {
-          cookies[key] = state.globalAppState[key]
-        })
-        setCookies(cookies)
-      } else {
-        setCookies({})
-      }
-    }, [state.globalAppState.cookieConsent])
 
     const contexts = contextKeys.map((key) => state[key])
     const ContextProviders = useCallback(
