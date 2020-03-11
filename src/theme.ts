@@ -78,8 +78,36 @@ async function setThemeTypeClientSide(
 }
 
 function getThemeTypeAuto(): "light" | "dark" {
-  // TODO: implement theme-sniffing function!
-  return "light"
+  if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+    console.log("getThemeTypeAuto: client's browser prefers dark theme")
+    console.log(
+        "getThemeTypeAuto: setting theme to dark based on client's browser's preference",
+    )
+    return "dark"
+  }
+  if (window.matchMedia("(prefers-color-scheme: light)").matches) {
+    console.log("getThemeTypeAuto: client's browser prefers light theme")
+    console.log(
+        "getThemeTypeAuto: setting theme to light based on client's browser's preference",
+    )
+    return "light"
+  }
+  if (window.matchMedia("(prefers-color-scheme: no-preference)").matches) {
+    console.log(
+        "getThemeTypeAuto: client's browser doesn't have a theme preference",
+    )
+  } else {
+    console.log(
+        "getThemeTypeAuto: client's browser doesn't express any kind of theme preference",
+    )
+  }
+  const date = new Date()
+  const hours = date.getHours()
+  const themeType: "light" | "dark" = hours < 6 || hours > 18 ? "dark" : "light"
+  console.log(
+      `getThemeTypeAuto: setting theme to ${themeType} based on local time (${date.toLocaleTimeString()})`,
+  )
+  return themeType
 }
 
 type ThemeType = "auto" | "light" | "dark"
