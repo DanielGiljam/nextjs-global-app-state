@@ -190,7 +190,7 @@ function lang(
     key: "lang",
     keyPlural: "languages",
     defaultValue: defaultLang,
-    defaultValues: new Set<string>(defaultSupportedLanguages),
+    defaultValues: defaultSupportedLanguages,
     initializeValue: {
       serverSide: getLangServerSide,
       clientSide: getLangClientSide,

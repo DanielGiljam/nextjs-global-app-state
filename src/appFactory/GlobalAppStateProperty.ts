@@ -54,7 +54,7 @@ export interface GlobalAppStatePropertyParameters<
    * A set of values enumerating the states that will be regarded
    * as valid states for your global app state property to be in.
    */
-  defaultValues: Set<T>;
+  defaultValues: T[];
   /**
    * An object literal containing functions that initialize/restore
    * the state of your global app state property, server-side and
@@ -99,12 +99,12 @@ export interface GlobalAppStatePropertyParameters<
      * A function for retrieving the set of values server-side.
      * @returns The set of values either synchronously or asynchronously
      */
-    serverSide?(): Set<T> | Promise<Set<T>>;
+    serverSide?(): T[] | Promise<T[]>;
     /**
      * A function for retrieving the set of values client-side.
      * @returns The set of values either synchronously or asynchronously
      */
-    clientSide?(): Set<T> | Promise<Set<T>>;
+    clientSide?(): T[] | Promise<T[]>;
   };
   /**
    * A function that gets invoked when the state of your
@@ -202,8 +202,8 @@ class GlobalAppStateProperty<T = PropertyValueType, C = ContextValueType> {
     clientSide?(values?: Set<T>, existingValue?: T): T | Promise<T>;
   }
   private readonly getValues?: {
-    serverSide?(): Set<T> | Promise<Set<T>>;
-    clientSide?(): Set<T> | Promise<Set<T>>;
+    serverSide?(): T[] | Promise<T[]>;
+    clientSide?(): T[] | Promise<T[]>;
   }
   private setValue?(
     values: Set<T>,
@@ -231,7 +231,7 @@ class GlobalAppStateProperty<T = PropertyValueType, C = ContextValueType> {
     defaultValues,
     ...parameters
   }: GlobalAppStatePropertyParameters<T, C>) {
-    if (defaultValues.has(defaultValue)) {
+    if (defaultValues.includes(defaultValue)) {
       this.key = key
       this.keyPlural = keyPlural || key + "s"
       this.setterName = key.replace(
@@ -240,7 +240,7 @@ class GlobalAppStateProperty<T = PropertyValueType, C = ContextValueType> {
       )
       this.state = {
         value: defaultValue,
-        values: defaultValues,
+        values: new Set<T>(defaultValues),
       }
       Object.entries(parameters).forEach(([key, value]) => {
         this[key as keyof this] = value
@@ -258,7 +258,7 @@ class GlobalAppStateProperty<T = PropertyValueType, C = ContextValueType> {
       req: IncomingMessage,
   ): Promise<void> {
     if (this.getValues?.serverSide) {
-      this.state.values = await this.getValues.serverSide()
+      this.state.values = new Set<T>(await this.getValues.serverSide())
     }
     if (this.initializeValue?.serverSide) {
       this.state.value = await this.initializeValue.serverSide(
@@ -311,7 +311,7 @@ class GlobalAppStateProperty<T = PropertyValueType, C = ContextValueType> {
       existingValues: Set<T>,
   ): Promise<void> {
     if (this.getValues?.clientSide) {
-      this.state.values = await this.getValues.clientSide()
+      this.state.values = new Set<T>(await this.getValues.clientSide())
     } else {
       this.state.values = existingValues
     }

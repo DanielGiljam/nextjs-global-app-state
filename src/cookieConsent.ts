@@ -56,7 +56,7 @@ async function setCookieConsentClientSide(
 export default {
   key: "cookieConsent",
   defaultValue: false,
-  defaultValues: new Set<CookieConsent>([true, false, null]),
+  defaultValues: [true, false, null],
   initializeValue: {
     serverSide: getCookieConsentServerSide,
     clientSide: getCookieConsentClientSide,

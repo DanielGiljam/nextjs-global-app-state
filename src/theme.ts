@@ -145,7 +145,7 @@ function theme(
   return {
     key: "theme",
     defaultValue: "auto",
-    defaultValues: new Set<ThemeType>(["auto", "light", "dark"]),
+    defaultValues: ["auto", "light", "dark"],
     initializeValue: {
       serverSide: getThemeTypeServerSide,
       clientSide: getThemeTypeClientSide,
