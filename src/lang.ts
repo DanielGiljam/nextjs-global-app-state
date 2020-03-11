@@ -28,6 +28,7 @@ function parseAcceptLanguageHeader(
 
 async function getLangServerSide(
     supportedLanguages: Set<string>,
+    defaultLang: string,
     cookies: Cookies,
     req: IncomingMessage,
 ): Promise<string> {
@@ -58,8 +59,8 @@ async function getLangServerSide(
     }
     console.log("getLangServerSide: no accepted language is supported.")
   } else console.log("getLangServerSide: found no \"Accept-Language\" header.")
-  console.log("getLangServerSide: falling back to:", {lang: "en"})
-  return "en"
+  console.log("getLangServerSide: falling back to:", {lang: defaultLang})
+  return defaultLang
 }
 
 async function getLangClientSide(

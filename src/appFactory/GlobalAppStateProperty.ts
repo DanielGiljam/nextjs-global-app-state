@@ -34,6 +34,7 @@ export interface GlobalAppStatePropertyParameters<
   initializeValue?: {
     serverSide?(
       values?: Set<T>,
+      defaultValue?: T,
       cookies?: Cookies,
       req?: IncomingMessage
     ): Promise<T>;
@@ -77,6 +78,7 @@ class GlobalAppStateProperty<T = PropertyValueType, C = ContextValueType> {
   private readonly initializeValue?: {
     serverSide?(
       values?: Set<T>,
+      defaultValue?: T,
       cookies?: Cookies,
       req?: IncomingMessage
     ): Promise<T>;
@@ -140,6 +142,7 @@ class GlobalAppStateProperty<T = PropertyValueType, C = ContextValueType> {
     if (this.initializeValue?.serverSide) {
       this.state.value = await this.initializeValue.serverSide(
           this.state.values,
+          this.state.value,
           cookies,
           req,
       )

@@ -16,6 +16,7 @@ function isThemeType(
 
 async function getThemeTypeServerSide(
     supportedThemeTypes: Set<ThemeType>,
+    defaultThemeType: ThemeType,
     cookies: Cookies,
 ): Promise<ThemeType> {
   console.log(
@@ -33,9 +34,9 @@ async function getThemeTypeServerSide(
     } else console.warn("getThemeTypeServerSide: the cookie was invalid.")
   } else console.log("getThemeTypeServerSide: found no theme type cookie.")
   console.log("getThemeTypeServerSide: falling back to:", {
-    themeType: "light",
+    themeType: defaultThemeType,
   })
-  return "light"
+  return defaultThemeType
 }
 
 async function getThemeTypeClientSide(): Promise<ThemeType> {

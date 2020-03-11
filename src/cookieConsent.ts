@@ -4,6 +4,7 @@ import webStorage from "./util/web-storage"
 
 async function getCookieConsentServerSide(
     _values: Set<CookieConsent>,
+    _defaultValue: CookieConsent,
     cookies: Cookies,
 ): Promise<boolean> {
   return cookies["cookie-consent"] === "true"
