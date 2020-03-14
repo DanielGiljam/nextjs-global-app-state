@@ -42,10 +42,6 @@ interface AppFactoryOptions {
    */
   Wrapper?: (props: {children: ReactNode}) => JSX.Element;
   /**
-   * A `getInitialProps` function for the `App` component.
-   */
-  getInitialProps?: (appContext: AppContext) => Promise<AppInitialProps>;
-  /**
    * An array of objects describing the global app state properties
    * that `appFactory` will implement into the `App` component.
    * Read the documentation for `GlobalAppStatePropertyParameters`
@@ -83,7 +79,6 @@ function appFactory(options?: AppFactoryOptions): App {
     Wrapper = ({children}: {children: ReactNode}): JSX.Element => (
       <>{children}</>
     ),
-    getInitialProps,
     properties = [],
   } = options || {}
   const globalAppState = new GlobalAppState([...properties, cookieConsent])
@@ -174,14 +169,11 @@ function appFactory(options?: AppFactoryOptions): App {
     )
   }
 
-  App.getInitialProps = async (
-    appContext,
-  ): Promise<AppInitialPropsExtended> => {
+  App.getInitialProps = async ({
+    Component,
+    ctx,
+  }): Promise<AppInitialPropsExtended> => {
     let pageProps = {}
-    if (getInitialProps) {
-      pageProps = await (await getInitialProps(appContext)).pageProps
-    }
-    const {Component, ctx} = appContext
     if (Component.getInitialProps) {
       pageProps = {...pageProps, ...(await Component.getInitialProps(ctx))}
     }
