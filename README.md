@@ -42,6 +42,14 @@ npm i -s nextjs-global-app-state
 npm i -D nextjs-global-app-state
 ```
 
+Wrap your `next.config.js` with the [`withGlobalAppState`](https://github.com/DanielGiljam/nextjs-global-app-state/wiki/withGlobalAppState) function.
+
+```js
+const withGlobalAppState = require("nextjs-global-app-state/withGlobalAppState");
+
+module.exports = withGlobalAppState(/* Your Next.js configuration goes here */);
+```
+
 In your `pages` directory, create a file called `_app.js`. Add the following code to the file.
 
 ```jsx
