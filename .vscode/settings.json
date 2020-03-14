@@ -5,6 +5,7 @@
         "Interop",
         "Stateful",
         "esnext",
+        "jsnext",
         "nextjs",
         "npmjs",
         "serializable",
