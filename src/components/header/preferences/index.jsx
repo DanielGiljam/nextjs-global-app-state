@@ -2,6 +2,7 @@ import PropTypes from "prop-types"
 
 import Menu from "@material-ui/core/Menu"
 import MenuItem from "@material-ui/core/MenuItem"
+
 import Lang from "./lang"
 import Theme from "./theme"
 import CookieConsent from "./cookie-consent"

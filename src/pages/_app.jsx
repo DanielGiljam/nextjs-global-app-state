@@ -1,6 +1,6 @@
-import Head from "next/head"
+import {useEffect} from "react"
 
-import appFactory from "../appFactory"
+import appFactory from "appFactory"
 import lang from "lang"
 import theme from "theme"
 
@@ -19,19 +19,21 @@ import fetch from "isomorphic-unfetch"
 extendStringClass()
 
 export default appFactory({
-  Head: (
-    <Head>
-      <title>Test</title>
-    </Head>
-  ),
-  // eslint-disable-next-line
-  Wrapper: ({children}) => (
-    <>
-      <Header />
-      {children}
-      <CookieConsentBar />
-    </>
-  ),
+  Wrapper: ({children}) => {
+    useEffect(() => {
+      const jssStyles = document.querySelector("#jss-server-side")
+      if (jssStyles) {
+        jssStyles.parentElement.removeChild(jssStyles)
+      }
+    }, [])
+    return (
+      <>
+        <Header />
+        {children}
+        <CookieConsentBar />
+      </>
+    )
+  },
   properties: [
     lang({
       defaultLang: "en",
@@ -47,7 +49,6 @@ export default appFactory({
     theme({
       createTheme: (themeType) =>
         responsiveFontSizes(createMuiTheme({palette: {type: themeType}})),
-      // eslint-disable-next-line
       ThemeProvider: ({value, children}) => (
         <ThemeProvider theme={value}>
           <CssBaseline />

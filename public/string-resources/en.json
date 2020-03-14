@@ -1,6 +1,7 @@
 {
   "general": {
     "siteName": "Material-UI + React + Next.js Template",
+    "description": "A site demonstrating the combination Material-UI, React and Next.js",
     "pageNames": {
       "home": "home",
       "about": "about"
