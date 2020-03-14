@@ -33,7 +33,6 @@ function format(template: string, ...substitutions: string[]): string {
   return formattedString
 }
 
-// TODO: decide whether extendStringClass() is actually a good idea!
 function extendStringClass(): void {
   Object.defineProperties(String, {
     format: {configurable: true, value: format, writable: true},
