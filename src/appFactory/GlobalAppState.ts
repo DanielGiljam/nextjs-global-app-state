@@ -25,6 +25,8 @@ export interface GlobalAppStateProxy {
 
 export interface HydratedState {
   globalAppState: GlobalAppStateProxy;
+  _mounted: boolean;
+  _ready: boolean;
   [key: string]: ContextValueType;
 }
 
@@ -40,7 +42,7 @@ class GlobalAppState {
   readonly setterNames: string[] = []
 
   constructor(properties: DehydratedProperties) {
-    const uniqueKeys: string[] = []
+    const uniqueKeys: string[] = ["_mounted", "_ready"]
     let key: string
     let keyPlural: string
     let setterName: string
@@ -115,7 +117,11 @@ class GlobalAppState {
   initializeStateClientSidePhase1(
       dehydratedState: DehydratedState,
   ): HydratedState {
-    const hydratedState: HydratedState = {globalAppState: {}}
+    const hydratedState: HydratedState = {
+      globalAppState: {},
+      _mounted: false,
+      _ready: false,
+    }
     this.properties.forEach((property) => {
       property.injectDehydratedState(dehydratedState[property.key])
       hydratedState.globalAppState[property.key] = property.value
@@ -127,8 +133,12 @@ class GlobalAppState {
 
   async initializeStateClientSidePhase2(
       hydratedState: HydratedState,
-  ): Promise<HydratedState | undefined> {
-    const deltaState: HydratedState = {globalAppState: {}}
+  ): Promise<HydratedState> {
+    const deltaState: HydratedState = {
+      globalAppState: {},
+      _mounted: true,
+      _ready: false,
+    }
     const phase2InitializationPromises = this.properties.map((property) =>
       (async (): Promise<void> => {
         await property.initializeStateClientSide(
