@@ -59,7 +59,7 @@ class GlobalAppState {
         this.propertyKeys.push(key)
         keyPlural = this.properties[index].keyPlural
         setterName = this.properties[index].setterName
-        if (uniqueKeys.includes(keyPlural) || uniqueKeys.includes(setterName)) {
+        if (uniqueKeys.includes(keyPlural)) {
           throw new Error(
               `[${key}]: This key's plural form "${keyPlural}" already refers to another global app state property.`,
           )
