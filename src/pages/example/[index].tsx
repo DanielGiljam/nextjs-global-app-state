@@ -1,9 +1,14 @@
-import Typography from "@material-ui/core/Typography"
-
-import useStrings from "useStrings"
 import {useRouter} from "next/router"
 
-function Example() {
+import React from "react"
+
+import Typography from "@material-ui/core/Typography"
+
+import useStrings from "../../useStrings"
+
+import format from "../../util/strings/format"
+
+function Example(): JSX.Element {
   const strings = useStrings()
   const router = useRouter()
   const {index: example} = router.query
@@ -11,7 +16,10 @@ function Example() {
   return (
     <Typography variant={"body1"}>
       {example ?
-        String.format(strings.general.templates.thisIsTheXExample, example) :
+        format(
+            strings.general.templates.thisIsTheXExample,
+            Array.isArray(example) ? example[0] : example,
+        ) :
         strings.example.thisIsNullExample}
     </Typography>
   )

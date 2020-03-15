@@ -30,6 +30,7 @@ module.exports = {
     "max-len": 0,
     "object-curly-spacing": [1, "never"],
     "react/jsx-curly-brace-presence": [1, {props: "always", children: "never"}],
+    "react/prop-types": 0,
     "require-jsdoc": 0,
     "valid-jsdoc": 0,
     quotes: [1, "double"],

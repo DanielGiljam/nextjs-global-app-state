@@ -1,11 +1,13 @@
+import React from "react"
+
 import Button from "@material-ui/core/Button"
 import Snackbar from "@material-ui/core/Snackbar"
 
 import useStyles from "./styles"
-import useStrings from "useStrings"
-import useGlobalAppState from "useGlobalAppState"
+import useStrings from "../../../useStrings"
+import useGlobalAppState from "../../../useGlobalAppState"
 
-function CookieConsentSnackbar() {
+function CookieConsentSnackbar(): JSX.Element {
   const styles = useStyles()
   const strings = useStrings().cookieConsentSnackbar
   const {cookieConsent, setCookieConsent} = useGlobalAppState()
@@ -21,13 +23,13 @@ function CookieConsentSnackbar() {
         <>
           <Button
             className={styles.buttonPositive}
-            onClick={() => setCookieConsent(true)}
+            onClick={(): void => setCookieConsent(true)}
           >
             {strings.yes}
           </Button>
           <Button
             className={styles.buttonNegative}
-            onClick={() => setCookieConsent(false)}
+            onClick={(): void => setCookieConsent(false)}
           >
             {strings.no}
           </Button>

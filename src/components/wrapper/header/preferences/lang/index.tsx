@@ -1,4 +1,4 @@
-import PropTypes from "prop-types"
+import React from "react"
 
 import FormControl from "@material-ui/core/FormControl"
 import FormLabel from "@material-ui/core/FormLabel"
@@ -6,11 +6,13 @@ import ToggleButton from "@material-ui/lab/ToggleButton"
 import ToggleButtonGroup from "@material-ui/lab/ToggleButtonGroup"
 
 import useStyles from "./styles"
-import useStrings from "useStrings"
+import useStrings from "../../../../../useStrings"
+import useGlobalAppState from "../../../../../useGlobalAppState"
 
-function Theme({theme, themes, setTheme}) {
+function Lang(): JSX.Element {
   const styles = useStyles()
-  const strings = useStrings().header.preferences.theme
+  const strings = useStrings().header.preferences.lang
+  const {lang, languages, setLang} = useGlobalAppState()
   return (
     <FormControl component={"fieldset"}>
       <FormLabel className={styles.legend} component={"legend"}>
@@ -18,13 +20,13 @@ function Theme({theme, themes, setTheme}) {
       </FormLabel>
       <ToggleButtonGroup
         className={styles.toggleButtonGroup}
-        onChange={(_event, value) => setTheme(value)}
+        onChange={(_event, value): void => setLang(value)}
         exclusive
-        value={theme}
+        value={lang}
       >
-        {themes.map((theme) => (
-          <ToggleButton key={theme} value={theme}>
-            {strings.option[theme]}
+        {Array.from(languages).map((lang) => (
+          <ToggleButton key={lang as string} value={lang}>
+            {strings.option[lang as string]}
           </ToggleButton>
         ))}
       </ToggleButtonGroup>
@@ -32,10 +34,4 @@ function Theme({theme, themes, setTheme}) {
   )
 }
 
-Theme.propTypes = {
-  theme: PropTypes.string.isRequired,
-  themes: PropTypes.arrayOf(PropTypes.string).isRequired,
-  setTheme: PropTypes.func.isRequired,
-}
-
-export default Theme
+export default Lang

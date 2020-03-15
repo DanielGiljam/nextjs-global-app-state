@@ -1,7 +1,7 @@
 import Head from "next/head"
 import Link from "next/link"
 
-import {useState} from "react"
+import React, {useState} from "react"
 
 import AppBar from "@material-ui/core/AppBar"
 import Toolbar from "@material-ui/core/Toolbar"
@@ -12,11 +12,15 @@ import SettingsRoundedIcon from "@material-ui/icons/SettingsRounded"
 
 import Preferences from "./preferences"
 
-import useStrings from "useStrings"
+import useStrings from "../../../useStrings"
 
-function Header() {
+import ucFirst from "../../../util/strings/ucFirst"
+
+export type Anchor = (EventTarget & HTMLButtonElement) | undefined
+
+function Header(): JSX.Element {
   const strings = useStrings()
-  const [preferencesAnchor, setPreferencesAnchor] = useState(null)
+  const [preferencesAnchor, setPreferencesAnchor] = useState<Anchor>(undefined)
   return (
     <>
       <Head>
@@ -30,16 +34,16 @@ function Header() {
           </Typography>
           <Link href={{pathname: "/"}} passHref>
             <Button component={"a"} color={"inherit"}>
-              {strings.general.pageNames.home.ucFirst()}
+              {ucFirst(strings.general.pageNames.home)}
             </Button>
           </Link>
           <Link href={{pathname: "/about"}} passHref>
             <Button component={"a"} color={"inherit"}>
-              {strings.general.pageNames.about.ucFirst()}
+              {ucFirst(strings.general.pageNames.about)}
             </Button>
           </Link>
           <IconButton
-            onClick={(event) => setPreferencesAnchor(event.currentTarget)}
+            onClick={(event): void => setPreferencesAnchor(event.currentTarget)}
             color={"inherit"}
             aria-controls={"preferences"}
             aria-haspopup={"true"}

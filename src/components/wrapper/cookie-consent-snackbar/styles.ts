@@ -1,12 +1,12 @@
-import makeStyles from "@material-ui/core/styles/makeStyles"
+import {Theme, createStyles, makeStyles} from "@material-ui/core/styles"
 
 import green from "@material-ui/core/colors/green"
 import red from "@material-ui/core/colors/red"
 
 import color from "color"
 
-function styles(theme) {
-  return {
+export default makeStyles((theme: Theme) =>
+  createStyles({
     buttonPositive: {
       "color": green[500],
       "&:hover": {
@@ -25,7 +25,5 @@ function styles(theme) {
             .string(),
       },
     },
-  }
-}
-
-export default makeStyles(styles)
+  }),
+)

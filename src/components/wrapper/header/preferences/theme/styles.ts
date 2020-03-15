@@ -1,7 +1,7 @@
-import makeStyles from "@material-ui/core/styles/makeStyles"
+import {Theme, createStyles, makeStyles} from "@material-ui/core/styles"
 
-function styles(theme) {
-  return {
+export default makeStyles((theme: Theme) =>
+  createStyles({
     legend: {
       color: theme.palette.text.primary,
       gridArea: "legend",
@@ -10,7 +10,5 @@ function styles(theme) {
     toggleButtonGroup: {
       marginTop: theme.spacing(1),
     },
-  }
-}
-
-export default makeStyles(styles)
+  }),
+)
