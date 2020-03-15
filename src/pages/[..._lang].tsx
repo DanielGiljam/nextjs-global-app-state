@@ -19,11 +19,11 @@ Lang.getInitialProps = async ({
   asPath,
   query,
 }: NextPageContext): Promise<LangProps> => {
-  const lang = Array.isArray(query.lang) ? query.lang[0] : query.lang
+  const lang = Array.isArray(query._lang) ? query._lang[0] : query._lang
   const as = (asPath as string).replace(new RegExp(`/${lang}/?`), "/")
   const url = as.replace(
       /(?:\?[^/]*)?$/,
-      (match) => `${match || "?"}&_lang=${lang}`,
+      (match) => `${match || "?"}&lang=${lang}`,
   )
   return {
     redirectUrl: url,
