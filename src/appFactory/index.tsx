@@ -133,6 +133,17 @@ function appFactory(options?: AppFactoryOptions): App {
       globalAppState.initializeStateClientSidePhase2(state).then(mergeState)
     }, [])
 
+    const urlParams = keysForURLParamListeningProperties.map(
+        (key) => props.urlParams[key],
+    )
+    useEffect(() => {
+      if (state._mounted) {
+        const justReady = urlParams.every((key) => typeof key === "undefined")
+        globalAppState
+            .onURLParamCallback(state, props.urlParams, justReady)
+            .then(mergeState)
+      }
+    }, [...urlParams, state._mounted])
 
     const setterDependencies = globalAppState.propertyKeysPlural.map(
         (key) => state.globalAppState[key],

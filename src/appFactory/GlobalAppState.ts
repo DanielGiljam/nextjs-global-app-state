@@ -81,23 +81,11 @@ class GlobalAppState {
     })
   }
 
-  getKeysForURLParamListeningProperties(): {
-    serverSide: string[];
-    clientSide: string[];
-    } {
-    const keysForURLParamListeningProperties: {
-      serverSide: string[];
-      clientSide: string[];
-    } = {
-      serverSide: [],
-      clientSide: [],
-    }
+  getKeysForURLParamListeningProperties(): string[] {
+    const keysForURLParamListeningProperties: string[] = []
     this.properties.forEach((property) => {
-      if (property.onURLParam?.serverSide) {
-        keysForURLParamListeningProperties.serverSide.push(property.key)
-      }
-      if (property.onURLParam?.clientSide) {
-        keysForURLParamListeningProperties.clientSide.push(property.key)
+      if (property.onURLParam) {
+        keysForURLParamListeningProperties.push(property.key)
       }
     })
     return keysForURLParamListeningProperties
@@ -190,14 +178,18 @@ class GlobalAppState {
     )
   }
 
-  async onURLParamCallbackClientSide(
+  async onURLParamCallback(
       state: HydratedState,
       urlParams: URLParams,
+      justReady: boolean,
   ): Promise<HydratedState | undefined> {
     const deltaState: HydratedState = {
       globalAppState: {},
       _mounted: true,
       _ready: true,
+    }
+    if (justReady) {
+      return !state._ready ? deltaState : undefined
     }
     const onURLCallbackPromises = this.properties.map((property) =>
       (async (): Promise<void> => {
