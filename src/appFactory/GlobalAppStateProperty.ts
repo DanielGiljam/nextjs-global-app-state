@@ -384,18 +384,22 @@ class GlobalAppStateProperty<T = PropertyValueType, C = ContextValueType> {
         this.state.contextValue = (this.state.value as unknown) as C
       }
     } else if (this.state.value !== existingValue) {
-      if (this.controlContext?.transformValue) {
-        try {
-          const contextValue = await this.controlContext.transformValue(
-              this.state.value,
-          )
-          this.state.contextValue = contextValue
-        } catch (error) {
-          console.error(
-              "[%s.initializeStateClientSide]: controlContext.transformValue() rejected:",
-              this.key,
-          )
-          console.error(error.stack)
+      if (this.controlContext) {
+        if (this.controlContext.transformValue) {
+          try {
+            const contextValue = await this.controlContext.transformValue(
+                this.state.value,
+            )
+            this.state.contextValue = contextValue
+          } catch (error) {
+            console.error(
+                "[%s.initializeStateClientSide]: controlContext.transformValue() rejected:",
+                this.key,
+            )
+            console.error(error.stack)
+          }
+        } else {
+          this.state.contextValue = (this.state.value as unknown) as C
         }
       }
     } else {
