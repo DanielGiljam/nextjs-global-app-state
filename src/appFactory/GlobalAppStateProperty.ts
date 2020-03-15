@@ -86,6 +86,36 @@ export interface GlobalAppStatePropertyParameters<
     clientSide?(values?: Set<T>, existingValue?: T): T | Promise<T>;
   };
   /**
+   * An object literal containing flags that control what happens
+   * when encountering a `urlParam`, server-side and client-side
+   * respectively. Encountering a `urlParam` is a short way of
+   * saying that the `query` property of the argument passed
+   * to `getInitialProps` has a key matching the key of
+   * your global app state property.
+   */
+  onURLParam?: {
+    /**
+     * Indicates that encountering a `urlParam` server-side means
+     * that the state of your global app state property becomes
+     * the value of the `urlParam`. Encountering a `urlParam`
+     * is a short way of saying that the `query` property
+     * of the argument passed to `getInitialProps` has
+     * a key matching the key of your
+     * global app state property.
+     */
+    serverSide?: boolean;
+    /**
+     * Indicates that encountering a `urlParam` client-side means
+     * that the state of your global app state property becomes
+     * the value of the `urlParam`. Encountering a `urlParam`
+     * is a short way of saying that the `query` property
+     * of the argument passed to `getInitialProps` has
+     * a key matching the key of your
+     * global app state property.
+     */
+    clientSide?: boolean;
+  };
+  /**
    * An object literal containing functions that retrieve a set
    * of values enumerating the states that will be regarded
    * as valid states for your global app state property.
@@ -189,6 +219,10 @@ class GlobalAppStateProperty<T = PropertyValueType, C = ContextValueType> {
   readonly keyPlural: string
   readonly setterName: string
   readonly isSensitiveInformation?: boolean
+  readonly onURLParam?: {
+    serverSide?: boolean;
+    clientSide?: boolean;
+  }
 
   private readonly initializeValue?: {
     serverSide?(
@@ -394,6 +428,41 @@ class GlobalAppStateProperty<T = PropertyValueType, C = ContextValueType> {
           } catch (error) {
             console.error(
                 "[%s.initializeStateClientSide]: controlContext.transformValue() rejected:",
+                this.key,
+            )
+            console.error(error.stack)
+          }
+        } else {
+          this.state.contextValue = (this.state.value as unknown) as C
+        }
+      }
+    } else {
+      this.state.contextValue = undefined
+    }
+  }
+
+  async onURLParamCallback(
+      values: Set<T>,
+      existingValue: T,
+      newValue: T,
+  ): Promise<void> {
+    if (!values.has(newValue)) {
+      throw new Error(
+          `[${this.key}.onURLParamCallback]: the urlParam's value was invalid.`,
+      )
+    }
+    this.state.value = newValue
+    if (this.state.value !== existingValue) {
+      if (this.controlContext) {
+        if (this.controlContext.transformValue) {
+          try {
+            const contextValue = await this.controlContext.transformValue(
+                this.state.value,
+            )
+            this.state.contextValue = contextValue
+          } catch (error) {
+            console.error(
+                "[%s.onURLParamCallback]: controlContext.transformValue() rejected:",
                 this.key,
             )
             console.error(error.stack)

@@ -2,6 +2,7 @@ import {IncomingMessage} from "http"
 
 import {Provider} from "react"
 
+import {URLParams} from "./index"
 import GlobalAppStateProperty, {
   ContextValueType,
   GlobalAppStatePropertySetter,
@@ -165,6 +166,46 @@ class GlobalAppState {
     return await Promise.all(phase2InitializationPromises).then(
         () => deltaState,
     )
+  }
+
+  async onURLParamCallbackClientSide(
+      state: HydratedState,
+      urlParams: URLParams,
+  ): Promise<HydratedState | undefined> {
+    const deltaState: HydratedState = {
+      globalAppState: {},
+      _mounted: true,
+      _ready: true,
+    }
+    const onURLCallbackPromises = this.properties.map((property) =>
+      (async (): Promise<void> => {
+        if (typeof urlParams[property.key] !== "undefined") {
+          await property.onURLParamCallback(
+              state.globalAppState[property.keyPlural],
+              state.globalAppState[property.key],
+              urlParams[property.key],
+          )
+          if (property.value !== state.globalAppState[property.key]) {
+            deltaState.globalAppState[property.key] = property.value
+          }
+          if (typeof property.contextValue !== "undefined") {
+            deltaState[property.key] = property.contextValue
+          }
+        }
+      })(),
+    )
+    return await Promise.allSettled(onURLCallbackPromises).then((results) => {
+      results.forEach((result) => {
+        if (result.status === "rejected") {
+          console.error(result.reason.stack)
+        }
+      })
+      return !state._ready ||
+        Object.keys(deltaState.globalAppState).length ||
+        Object.keys(deltaState).length > 3 ?
+        deltaState :
+        undefined
+    })
   }
 
   getSetters(): PropertySettersUnderConstruction {

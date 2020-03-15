@@ -62,8 +62,8 @@ interface AppInitialPropsExtended extends AppInitialProps {
   urlParams: URLParams;
 }
 
-interface URLParams {
-  lang?: string;
+export interface URLParams {
+  [key: string]: string;
 }
 
 /**
@@ -194,9 +194,13 @@ function appFactory(options?: AppFactoryOptions): App {
   }
 
   App.getURLParams = async (query): Promise<URLParams> => {
-    return {
-      lang: Array.isArray(query._lang) ? query._lang[0] : query._lang,
-    }
+    const urlParams: URLParams = {}
+    globalAppState.propertyKeys.forEach((key) => {
+      urlParams[key] = Array.isArray(query[key]) ?
+        query[key][query[key].length - 1] :
+        (query[key] as string)
+    })
+    return urlParams
   }
 
   return App
