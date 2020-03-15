@@ -81,6 +81,28 @@ class GlobalAppState {
     })
   }
 
+  getKeysForURLParamListeningProperties(): {
+    serverSide: string[];
+    clientSide: string[];
+    } {
+    const keysForURLParamListeningProperties: {
+      serverSide: string[];
+      clientSide: string[];
+    } = {
+      serverSide: [],
+      clientSide: [],
+    }
+    this.properties.forEach((property) => {
+      if (property.onURLParam?.serverSide) {
+        keysForURLParamListeningProperties.serverSide.push(property.key)
+      }
+      if (property.onURLParam?.clientSide) {
+        keysForURLParamListeningProperties.clientSide.push(property.key)
+      }
+    })
+    return keysForURLParamListeningProperties
+  }
+
   getContextKeysAndProviders(): [string[], Provider<ContextValueType>[]] {
     const [contextKeys, providers]: [string[], Provider<ContextValueType>[]] = [
       [],

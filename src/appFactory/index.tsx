@@ -82,6 +82,7 @@ function appFactory(options?: AppFactoryOptions): App {
     properties = [],
   } = options || {}
   const globalAppState = new GlobalAppState([...properties, cookieConsent])
+  const keysForURLParamListeningProperties = globalAppState.getKeysForURLParamListeningProperties()
   const [
     contextKeys,
     contextProviders,
