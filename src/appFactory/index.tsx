@@ -112,21 +112,24 @@ function appFactory(options?: AppFactoryOptions): App {
       globalAppState.initializeStateClientSidePhase1(props.dehydratedState),
     )
 
+    const mergeState = useCallback(
+        (deltaState) => {
+          if (deltaState) {
+            setState((prevState) => ({
+              ...prevState,
+              ...deltaState,
+              globalAppState: {
+                ...prevState.globalAppState,
+                ...deltaState.globalAppState,
+              },
+            }))
+          }
+        },
+        [setState],
+    )
+
     useEffect(() => {
-      globalAppState
-          .initializeStateClientSidePhase2(state)
-          .then((deltaState) => {
-            if (deltaState) {
-              setState((prevState) => ({
-                ...prevState,
-                ...deltaState,
-                globalAppState: {
-                  ...prevState.globalAppState,
-                  ...deltaState.globalAppState,
-                },
-              }))
-            }
-          })
+      globalAppState.initializeStateClientSidePhase2(state).then(mergeState)
     }, [])
 
 
@@ -134,31 +137,39 @@ function appFactory(options?: AppFactoryOptions): App {
         (key) => state.globalAppState[key],
     )
     const setters = useMemo(() => {
-      const setters: GlobalAppStateProxy = {}
-      Object.entries(globalAppState.getSetters()).forEach(([key, setter]) => {
-        setters[key] = (value: PropertyValueType): void => {
-          setter(
-              setterDependencies[globalAppState.setterNames.indexOf(key)],
-              state.globalAppState.cookieConsent,
-              value,
-          ).then((contextValue: ContextValueType | undefined) => {
-            setState((prevState) => ({
-              ...prevState,
-              [globalAppState.propertyKeys[
-                  globalAppState.setterNames.indexOf(key)
-              ]]: contextValue,
-              globalAppState: {
-                ...prevState.globalAppState,
+      if (state._mounted) {
+        const setters: GlobalAppStateProxy = {}
+        Object.entries(globalAppState.getSetters()).forEach(([key, setter]) => {
+          setters[key] = (value: PropertyValueType): void => {
+            setter(
+                setterDependencies[globalAppState.setterNames.indexOf(key)],
+                state.globalAppState.cookieConsent,
+                value,
+            ).then((contextValue: ContextValueType | undefined) => {
+              setState((prevState) => ({
+                ...prevState,
                 [globalAppState.propertyKeys[
                     globalAppState.setterNames.indexOf(key)
-                ]]: value,
-              },
-            }))
-          })
-        }
-      })
-      return setters
-    }, [...setterDependencies, state.globalAppState.cookieConsent])
+                ]]: contextValue,
+                globalAppState: {
+                  ...prevState.globalAppState,
+                  [globalAppState.propertyKeys[
+                      globalAppState.setterNames.indexOf(key)
+                  ]]: value,
+                },
+              }))
+            })
+          }
+        })
+        return setters
+      } else {
+        return {}
+      }
+    }, [
+      ...setterDependencies,
+      state.globalAppState.cookieConsent,
+      state._mounted,
+    ])
 
     return (
       <>
