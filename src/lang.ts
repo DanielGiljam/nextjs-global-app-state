@@ -193,6 +193,10 @@ function lang(
       serverSide: getLangServerSide,
       clientSide: getLangClientSide,
     },
+    onURLParam: {
+      serverSide: true,
+      clientSide: true,
+    },
     getValues: getSupportedLanguages,
     setValue: setLangClientSide,
     controlContext: {
