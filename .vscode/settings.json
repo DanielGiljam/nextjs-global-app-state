@@ -1,16 +1,19 @@
 {
-    "cSpell.words": [
-        "CCPA",
-        "Giljam",
-        "Interop",
-        "Stateful",
-        "esnext",
-        "jsnext",
-        "nextjs",
-        "npmjs",
-        "serializable",
-        "svenska",
-        "unfetch",
-        "xstate"
-    ]
+  "cSpell.words": [
+    "CCPA",
+    "Giljam",
+    "Interop",
+    "Stateful",
+    "esnext",
+    "jsnext",
+    "nextjs",
+    "npmjs",
+    "serializable",
+    "svenska",
+    "unfetch",
+    "xstate"
+  ],
+  "files.autoGuessEncoding": false,
+  "files.eol": "\n",
+  "files.encoding": "utf8"
 }
