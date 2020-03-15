@@ -86,6 +86,26 @@ function appFactory(options?: AppFactoryOptions): App {
     contextKeys,
     contextProviders,
   ] = globalAppState.getContextKeysAndProviders()
+  const ContextProviders = function ContextProviders({
+    globalAppState,
+    contextValues,
+    children,
+  }: {
+    globalAppState: GlobalAppStateProxy;
+    contextValues: ContextValueType[];
+    children: ReactNode;
+  }): JSX.Element {
+    return contextProviders.reduce(
+        (accumulator, ContextProvider, index) => (
+          <ContextProvider value={contextValues[index]}>
+            {accumulator}
+          </ContextProvider>
+        ),
+        <GlobalAppStateContextProvider globalAppState={globalAppState}>
+          <Wrapper>{children}</Wrapper>
+        </GlobalAppStateContextProvider>,
+    )
+  }
 
   const App: App = function App({Component, ...props}) {
     const [state, setState] = useState(() =>
@@ -109,19 +129,6 @@ function appFactory(options?: AppFactoryOptions): App {
           })
     }, [])
 
-    const contexts = contextKeys.map((key) => state[key])
-    const ContextProviders = useCallback(
-        ({children}: {children: ReactNode}): JSX.Element =>
-          contextProviders.reduce(
-              (accumulator, ContextProvider, index) => (
-                <ContextProvider value={contexts[index]}>
-                  {accumulator}
-                </ContextProvider>
-              ),
-              <>{children}</>,
-          ),
-        contexts,
-    )
 
     const setterDependencies = globalAppState.propertyKeysPlural.map(
         (key) => state.globalAppState[key],
@@ -156,14 +163,11 @@ function appFactory(options?: AppFactoryOptions): App {
     return (
       <>
         {Head}
-        <ContextProviders>
-          <GlobalAppStateContextProvider
-            globalAppState={{...state.globalAppState, ...setters}}
-          >
-            <Wrapper>
-              <Component {...props.pageProps} />
-            </Wrapper>
-          </GlobalAppStateContextProvider>
+        <ContextProviders
+          globalAppState={{...state.globalAppState, ...setters}}
+          contextValues={contextKeys.map((key) => state[key])}
+        >
+          <Component {...props.pageProps} />
         </ContextProviders>
       </>
     )
