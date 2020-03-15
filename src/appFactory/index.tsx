@@ -145,20 +145,24 @@ function appFactory(options?: AppFactoryOptions): App {
                 setterDependencies[globalAppState.setterNames.indexOf(key)],
                 state.globalAppState.cookieConsent,
                 value,
-            ).then((contextValue: ContextValueType | undefined) => {
-              setState((prevState) => ({
-                ...prevState,
-                [globalAppState.propertyKeys[
-                    globalAppState.setterNames.indexOf(key)
-                ]]: contextValue,
-                globalAppState: {
-                  ...prevState.globalAppState,
-                  [globalAppState.propertyKeys[
-                      globalAppState.setterNames.indexOf(key)
-                  ]]: value,
-                },
-              }))
-            })
+            )
+                .then((contextValue: ContextValueType | undefined) => {
+                  setState((prevState) => ({
+                    ...prevState,
+                    [globalAppState.propertyKeys[
+                        globalAppState.setterNames.indexOf(key)
+                    ]]: contextValue,
+                    globalAppState: {
+                      ...prevState.globalAppState,
+                      [globalAppState.propertyKeys[
+                          globalAppState.setterNames.indexOf(key)
+                      ]]: value,
+                    },
+                  }))
+                })
+                .catch((error) => {
+                  console.error(error.stack)
+                })
           }
         })
         return setters
