@@ -86,14 +86,13 @@ export interface GlobalAppStatePropertyParameters<
     clientSide?(values?: Set<T>, existingValue?: T): T | Promise<T>;
   };
   /**
-   * Indicates that encountering a `urlParam` means that
-   * the state of your global app state property becomes
-   * the value of the `urlParam`. Encountering a
-   * `urlParam` is a short way of saying that
-   * the `query` property of the argument
-   * passed to `getInitialProps` has
-   * a key matching the key of your
-   * global app state property.
+   * Indicates that encountering a `urlParam` leads to the state of your
+   * global app state property becoming the value of that `urlParam`.
+   * Encountering a `urlParam` is a short way of saying that
+   * the `query` property of the argument passed to
+   * `getInitialProps` has a key that matches
+   * the key of your global app
+   * state property.
    */
   onURLParam?: boolean;
   /**
