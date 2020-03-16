@@ -110,7 +110,7 @@ async function getLangClientSide(
 
 async function setLangClientSide(
     supportedLanguages: Set<string>,
-    cookieConsent: CookieConsent,
+    _cookieConsent: CookieConsent,
     lang: string,
 ): Promise<void> {
   if (!supportedLanguages.has(lang)) {

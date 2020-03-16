@@ -61,7 +61,7 @@ async function getThemeTypeClientSide(): Promise<ThemeType> {
 
 async function setThemeTypeClientSide(
     supportedThemeTypes: Set<ThemeType>,
-    cookieConsent: CookieConsent,
+    _cookieConsent: CookieConsent,
     themeType: ThemeType,
 ): Promise<void> {
   if (!supportedThemeTypes.has(themeType)) {
