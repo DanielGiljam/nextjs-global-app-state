@@ -78,6 +78,7 @@ async function getLangClientSide(
     console.log(
         `getLangClientSide: returning "${local}" based on item in localStorage.`,
     )
+    document.documentElement.lang = local
     return local
   }
   // 2. Reading sessionStorage
@@ -86,6 +87,7 @@ async function getLangClientSide(
     console.log(
         `getLangClientSide: returning "${session}" based on item in sessionStorage.`,
     )
+    document.documentElement.lang = session
     return session
   }
   let lang = serverSideLang
@@ -105,6 +107,7 @@ async function getLangClientSide(
   }
   // (Returning the result + populating sessionStorage.lang with the result)
   webStorage.set("lang", lang, "session")
+  document.documentElement.lang = lang
   return lang
 }
 
@@ -118,6 +121,7 @@ async function setLangClientSide(
         "\"lang\" parameter provided to setLang() must be a supported language!",
     )
   }
+  document.documentElement.lang = lang
   console.log(`setLang: setting language to "${lang}"...`)
   webStorage.set("lang", lang)
   setCookie("lang", lang)
