@@ -1,6 +1,6 @@
 {
   "name": "nextjs-global-app-state",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "A custom `App` component which implements a robust, full stack solution for maintaining state across an entire website experience.",
   "homepage": "https://github.com/DanielGiljam/nextjs-global-app-state#readme",
   "bugs": "https://github.com/DanielGiljam/nextjs-global-app-state/issues",
