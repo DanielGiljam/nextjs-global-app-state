@@ -43,7 +43,7 @@ class GlobalAppState {
   readonly setterNames: string[] = []
 
   constructor(properties: DehydratedProperties) {
-    const uniqueKeys: string[] = ["_mounted", "_ready"]
+    const uniqueKeys: string[] = ["_mounted", "_ready", "mounted", "ready"]
     let key: string
     let keyPlural: string
     let setterName: string

@@ -191,7 +191,12 @@ function appFactory(options?: AppFactoryOptions): App {
       <>
         {Head}
         <ContextProviders
-          globalAppState={{...state.globalAppState, ...setters}}
+          globalAppState={{
+            ...state.globalAppState,
+            ...setters,
+            mounted: state._mounted,
+            ready: state._ready,
+          }}
           contextValues={contextKeys.map((key) => state[key])}
         >
           <Component {...props.pageProps} />
