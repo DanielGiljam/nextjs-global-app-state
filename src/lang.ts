@@ -81,15 +81,6 @@ async function getLangClientSide(
     document.documentElement.lang = local
     return local
   }
-  // 2. Reading sessionStorage
-  const session = window.sessionStorage.lang
-  if (session) {
-    console.log(
-        `getLangClientSide: returning "${session}" based on item in sessionStorage.`,
-    )
-    document.documentElement.lang = session
-    return session
-  }
   let lang = serverSideLang
   let browserPreference
   // 3. Reading browser's language preferences
@@ -105,17 +96,19 @@ async function getLangClientSide(
   } else {
     console.log(`getLangClientSide: returning "${lang}" based on nothing.`)
   }
-  // (Returning the result + populating sessionStorage.lang with the result)
-  webStorage.set("lang", lang, "session")
+  // (Returning the result)
   document.documentElement.lang = lang
   return lang
 }
 
 async function setLangClientSide(
     supportedLanguages: Set<string>,
-    _cookieConsent: CookieConsent,
+    cookieConsent: CookieConsent,
     lang: string,
 ): Promise<void> {
+  if (!cookieConsent) {
+    throw new Error("Can't setLang() if cookieConsent isn't true!")
+  }
   if (!supportedLanguages.has(lang)) {
     throw new TypeError(
         "\"lang\" parameter provided to setLang() must be a supported language!",
@@ -200,6 +193,8 @@ function lang(
     onURLParam: true,
     getValues: getSupportedLanguages,
     setValue: setLangClientSide,
+    // For demo purposes — in this "strict edition" — `theme` counts as a sensitive global app state property
+    isSensitiveInformation: true,
     controlContext: {
       transformValue: async (lang: string): Promise<Strings> =>
         await makeStrings(lang, defaultLang, getStrings),

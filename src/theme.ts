@@ -47,7 +47,7 @@ async function getThemeTypeClientSide(): Promise<ThemeType> {
     )
   }
   // 1. Reading localStorage
-  const local = window.localStorage.themeType
+  const local = window.localStorage.theme
   if (local) {
     console.log(
         `getThemeTypeClientSide: returning "${local}" based on item in localStorage.`,
@@ -61,16 +61,19 @@ async function getThemeTypeClientSide(): Promise<ThemeType> {
 
 async function setThemeTypeClientSide(
     supportedThemeTypes: Set<ThemeType>,
-    _cookieConsent: CookieConsent,
+    cookieConsent: CookieConsent,
     themeType: ThemeType,
 ): Promise<void> {
+  if (!cookieConsent) {
+    throw new Error("Can't setThemeType() if cookieConsent isn't true!")
+  }
   if (!supportedThemeTypes.has(themeType)) {
     throw new TypeError(
         "themeType parameter provided to setThemeType() must be a supported theme type!",
     )
   }
   console.log(`setThemeType: setting theme type to "${themeType}"...`)
-  webStorage.set("themeType", themeType)
+  webStorage.set("theme", themeType)
   setCookie("theme", themeType)
   console.log(`setCookie: key "theme" was set to value "${themeType}".`)
 }
@@ -97,10 +100,6 @@ function getThemeTypeAutoHelper2(
     console.log(
         `getThemeTypeAuto: setting theme to ${prefersColorScheme} based on client's browser's preference.`,
     )
-    setCookie("theme", prefersColorScheme)
-    console.log(
-        `setCookie: key "theme" was set to value "${prefersColorScheme}".`,
-    )
     return true
   }
   return false
@@ -109,7 +108,7 @@ function getThemeTypeAutoHelper2(
 function getThemeTypeAuto(): "light" | "dark" {
   if (typeof window === "undefined") {
     console.log("getThemeTypeAuto: environment isn't the client's.")
-    return getThemeTypeAutoHelper1()
+    return "light"
   }
   let themeType: "light" | "dark"
   if (getThemeTypeAutoHelper2((themeType = "light"))) {
@@ -128,8 +127,6 @@ function getThemeTypeAuto(): "light" | "dark" {
     )
   }
   themeType = getThemeTypeAutoHelper1()
-  setCookie("theme", themeType)
-  console.log(`setCookie: key "theme" was set to value "${themeType}".`)
   return themeType
 }
 
@@ -174,6 +171,8 @@ function theme(
       clientSide: getThemeTypeClientSide,
     },
     setValue: setThemeTypeClientSide,
+    // For demo purposes — in this "strict edition" — `theme` counts as a sensitive global app state property
+    isSensitiveInformation: true,
     controlContext: {
       transformValue: (themeType: ThemeType): Theme =>
         createTheme(

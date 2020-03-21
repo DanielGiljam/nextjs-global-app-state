@@ -81,6 +81,16 @@ class GlobalAppState {
     })
   }
 
+  getKeysForSensitiveProperties(): string[] {
+    const keysForSensitiveProperties: string[] = []
+    this.properties.forEach((property) => {
+      if (property.isSensitiveInformation) {
+        keysForSensitiveProperties.push(property.key)
+      }
+    })
+    return keysForSensitiveProperties
+  }
+
   getKeysForURLParamListeningProperties(): string[] {
     const keysForURLParamListeningProperties: string[] = []
     this.properties.forEach((property) => {

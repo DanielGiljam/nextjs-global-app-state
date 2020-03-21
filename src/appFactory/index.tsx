@@ -21,10 +21,18 @@ import {
   GlobalAppStatePropertyParameters,
   PropertyValueType,
   ContextValueType,
+  GlobalAppStatePropertySetter,
 } from "./GlobalAppStateProperty"
 import {GlobalAppStateContextProvider} from "./GlobalAppStateContext"
 
 import cookieConsent from "../cookieConsent"
+import {
+  CookieConsent,
+  Cookies,
+  setCookies,
+  purgeCookiesButCheck,
+} from "../util/cookies"
+import webStorage from "../util/web-storage"
 
 /**
  * An object literal. All fields are optional.
@@ -82,6 +90,7 @@ function appFactory(options?: AppFactoryOptions): App {
     properties = [],
   } = options || {}
   const globalAppState = new GlobalAppState([...properties, cookieConsent])
+  const keysForSensitiveProperties = globalAppState.getKeysForSensitiveProperties()
   const keysForURLParamListeningProperties = globalAppState.getKeysForURLParamListeningProperties()
   const [
     contextKeys,
@@ -151,7 +160,46 @@ function appFactory(options?: AppFactoryOptions): App {
     const setters = useMemo(() => {
       if (state._mounted) {
         const setters: GlobalAppStateProxy = {}
-        Object.entries(globalAppState.getSetters()).forEach(([key, setter]) => {
+        const rawSetterEntries = Object.entries(globalAppState.getSetters())
+        const [
+          cookieConsentSetterKey,
+          rawCookieConsentSetter,
+        ] = rawSetterEntries.pop() as [
+          string,
+          GlobalAppStatePropertySetter<CookieConsent>
+        ]
+        setters[cookieConsentSetterKey] = (value: CookieConsent): void => {
+          rawCookieConsentSetter(
+              setterDependencies[
+                  globalAppState.setterNames.indexOf(cookieConsentSetterKey)
+              ],
+              state.globalAppState.cookieConsent,
+              value,
+          ).then(() => {
+            const cookies: Cookies = {}
+            keysForSensitiveProperties.forEach((key) => {
+              cookies[key] = state.globalAppState[key].toString()
+            })
+            if (value) {
+              setCookies(cookies)
+            } else {
+              keysForSensitiveProperties.forEach((key) => {
+                if (window.localStorage[key]) webStorage.remove(key)
+              })
+              purgeCookiesButCheck(cookies)
+            }
+            setState((prevState) => ({
+              ...prevState,
+              globalAppState: {
+                ...prevState.globalAppState,
+                [globalAppState.propertyKeys[
+                    globalAppState.setterNames.indexOf(cookieConsentSetterKey)
+                ]]: value,
+              },
+            }))
+          })
+        }
+        rawSetterEntries.forEach(([key, setter]) => {
           setters[key] = (value: PropertyValueType): void => {
             setter(
                 setterDependencies[globalAppState.setterNames.indexOf(key)],

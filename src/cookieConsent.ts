@@ -1,4 +1,9 @@
-import {Cookies, CookieConsent} from "./util/cookies"
+import {
+  Cookies,
+  CookieConsent,
+  setCookie,
+  purgeCookiesButCheck,
+} from "./util/cookies"
 
 import webStorage from "./util/web-storage"
 
@@ -46,11 +51,20 @@ async function setCookieConsentClientSide(
     _cookieConsent: CookieConsent,
     value: CookieConsent,
 ): Promise<void> {
-  console.log(`setCookieConsent: setting cookie consent to "${value}"...`)
-  webStorage.set(
-      "cookieConsent",
-    typeof value === "boolean" ? value.toString() : "null",
+  const valueAsString = typeof value === "boolean" ? value.toString() : "null"
+  console.log(
+      `setCookieConsent: setting cookie consent to "${valueAsString}"...`,
   )
+  if (value) {
+    webStorage.set("cookieConsent", valueAsString)
+    setCookie("cookieConsent", valueAsString)
+    console.log(`setCookie: key "theme" was set to value "${valueAsString}".`)
+  } else {
+    if (window.localStorage.cookieConsent) webStorage.remove("cookieConsent")
+    purgeCookiesButCheck({
+      cookieConsent: valueAsString,
+    })
+  }
 }
 
 export default {

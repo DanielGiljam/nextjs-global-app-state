@@ -2,13 +2,15 @@ import parseCookies from "./parse-cookies"
 import purgeCookies from "./purge-cookies"
 import setCookie from "./set-cookie"
 
+export {parseCookies, purgeCookies, setCookie}
+
 export type CookieConsent = boolean | null
 
 export interface Cookies {
   [key: string]: string;
 }
 
-export async function setCookies(cookies: Cookies): Promise<void> {
+export function setCookies(cookies: Cookies): void {
   console.log("setCookies: cookies that will be set:", cookies)
   const existingCookies = parseCookies(document.cookie)
   console.log("setCookies: existing cookies:", {
@@ -36,19 +38,16 @@ export async function setCookies(cookies: Cookies): Promise<void> {
       }
       setCookie(cookieKey, cookieValue)
     }
-    // Deleting every key in existingCookies that is also in the cookies-object
-    // that was passed as an argument to this function. This way existingCookies
-    // is virtually "remainingCookies" by the end of this loop.
-    if (!delete existingCookies[cookieKey]) {
-      // If a key deletion is unsuccessful, a warning is logged about that.
-      console.warn(
-          `setCookies: failed operating on cookie "${cookieKey}"! As a result, it will be unset. Sorry!`,
-      )
-    }
   }
-  // Purging all "cookies" that still remain in existingCookies
-  purgeCookies(existingCookies)
   console.log("setCookies: resulting cookies:", {
     resultingCookies: document.cookie,
   })
+}
+
+export function purgeCookiesButCheck(cookies: Cookies): void {
+  const existingCookies = parseCookies(document.cookie)
+  Object.keys(cookies).forEach((key) => {
+    if (!existingCookies[key]) delete cookies[key]
+  })
+  purgeCookies(cookies)
 }
