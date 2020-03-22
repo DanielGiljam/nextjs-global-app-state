@@ -35,7 +35,7 @@ async function getCookieConsentClientSide(): Promise<CookieConsent> {
         "getCookieConsentClientSide() was called in an environment that isn't the client's.",
     )
   }
-  // 1. Reading localStorage
+  // 1. Reading localStorage and sessionStorage
   let cookieConsent
   if (
     (cookieConsent = parseCookieConsent(window.localStorage.cookieConsent)) !=
@@ -44,9 +44,7 @@ async function getCookieConsentClientSide(): Promise<CookieConsent> {
     console.log(
         `getCookieConsentClientSide: returning "${cookieConsent}" based on item in localStorage.`,
     )
-  }
-  // 2. Reading sessionStorage
-  if (
+  } else if (
     (cookieConsent = parseCookieConsent(window.sessionStorage.cookieConsent)) !=
     null
   ) {
