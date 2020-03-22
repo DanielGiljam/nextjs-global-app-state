@@ -1,6 +1,6 @@
 {
   "name": "nextjs-global-app-state-strict-demo",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "description": "This package demonstrates strict features planned for nextjs-global-app-state.",
   "homepage": "https://github.com/DanielGiljam/nextjs-global-app-state#readme",
   "bugs": "https://github.com/DanielGiljam/nextjs-global-app-state/issues",

@@ -421,6 +421,7 @@ class GlobalAppStateProperty<T = PropertyValueType, C = ContextValueType> {
   async onURLParamCallback(
       values: Set<T>,
       existingValue: T,
+      cookieConsent: CookieConsent,
       newValue: T,
   ): Promise<void> {
     if (!values.has(newValue)) {
@@ -430,6 +431,7 @@ class GlobalAppStateProperty<T = PropertyValueType, C = ContextValueType> {
     }
     this.state.value = newValue
     if (this.state.value !== existingValue) {
+      if (this.setValue) this.setValue(values, cookieConsent, this.state.value)
       if (this.controlContext) {
         if (this.controlContext.transformValue) {
           try {

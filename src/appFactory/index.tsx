@@ -181,10 +181,17 @@ function appFactory(options?: AppFactoryOptions): App {
               cookies[key] = state.globalAppState[key].toString()
             })
             if (value) {
+              keysForSensitiveProperties.forEach((key) => {
+                if (window.sessionStorage[key]) {
+                  webStorage.set(key, window.sessionStorage[key])
+                }
+              })
               setCookies(cookies)
             } else {
               keysForSensitiveProperties.forEach((key) => {
-                if (window.localStorage[key]) webStorage.remove(key)
+                if (window.localStorage[key]) {
+                  webStorage.remove(key)
+                }
               })
               purgeCookiesButCheck(cookies)
             }

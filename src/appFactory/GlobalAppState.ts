@@ -201,12 +201,14 @@ class GlobalAppState {
     if (justReady) {
       return !state._ready ? deltaState : undefined
     }
+    const cookieConsent = state.globalAppState.cookieConsent
     const onURLCallbackPromises = this.properties.map((property) =>
       (async (): Promise<void> => {
         if (typeof urlParams[property.key] !== "undefined") {
           await property.onURLParamCallback(
               state.globalAppState[property.keyPlural],
               state.globalAppState[property.key],
+              cookieConsent,
               urlParams[property.key],
           )
           if (property.value !== state.globalAppState[property.key]) {

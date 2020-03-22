@@ -54,7 +54,15 @@ async function getThemeTypeClientSide(): Promise<ThemeType> {
     )
     return local
   }
-  // 2. Returning theme type "auto" if no theme type was explicitly specified in localStorage
+  // 2. Reading sessionStorage
+  const session = window.sessionStorage.theme
+  if (session) {
+    console.log(
+        `getThemeTypeClientSide: returning "${session}" based on item in sessionStorage.`,
+    )
+    return session
+  }
+  // 3. Returning theme type "auto" if no theme type was explicitly specified in local-/sessionStorage
   console.log("getThemeTypeClientSide: returning \"auto\" based on nothing.")
   return "auto"
 }
@@ -64,18 +72,18 @@ async function setThemeTypeClientSide(
     cookieConsent: CookieConsent,
     themeType: ThemeType,
 ): Promise<void> {
-  if (!cookieConsent) {
-    throw new Error("Can't setThemeType() if cookieConsent isn't true!")
-  }
   if (!supportedThemeTypes.has(themeType)) {
     throw new TypeError(
         "themeType parameter provided to setThemeType() must be a supported theme type!",
     )
   }
   console.log(`setThemeType: setting theme type to "${themeType}"...`)
-  webStorage.set("theme", themeType)
-  setCookie("theme", themeType)
-  console.log(`setCookie: key "theme" was set to value "${themeType}".`)
+  webStorage.set("theme", themeType, "session")
+  if (cookieConsent) {
+    webStorage.set("theme", themeType, "local")
+    setCookie("theme", themeType)
+    console.log(`setCookie: key "theme" was set to value "${themeType}".`)
+  }
 }
 
 function getThemeTypeAutoHelper1(): "light" | "dark" {
@@ -105,10 +113,10 @@ function getThemeTypeAutoHelper2(
   return false
 }
 
-function getThemeTypeAuto(): "light" | "dark" {
+function getThemeTypeAuto(): "light" | "dark" | "server" {
   if (typeof window === "undefined") {
     console.log("getThemeTypeAuto: environment isn't the client's.")
-    return "light"
+    return "server"
   }
   let themeType: "light" | "dark"
   if (getThemeTypeAutoHelper2((themeType = "light"))) {
@@ -141,7 +149,7 @@ interface ThemeOptions {
    * @param themeType Either `"light"` or `"dark"`
    * @returns A theme
    */
-  createTheme(themeType: "light" | "dark"): Theme;
+  createTheme(themeType: "light" | "dark" | "server"): Theme;
   /**
    * A `Context.Provider` for a `Context` that holds a theme. It doesn't
    * strictly have to be a `Context.Provider`. It just has to be

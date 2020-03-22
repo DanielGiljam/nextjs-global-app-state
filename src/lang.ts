@@ -81,6 +81,15 @@ async function getLangClientSide(
     document.documentElement.lang = local
     return local
   }
+  // 2. Reading sessionStorage
+  const session = window.sessionStorage.lang
+  if (session) {
+    console.log(
+        `getLangClientSide: returning "${session}" based on item in sessionStorage.`,
+    )
+    document.documentElement.lang = session
+    return session
+  }
   let lang = serverSideLang
   let browserPreference
   // 3. Reading browser's language preferences
@@ -106,9 +115,6 @@ async function setLangClientSide(
     cookieConsent: CookieConsent,
     lang: string,
 ): Promise<void> {
-  if (!cookieConsent) {
-    throw new Error("Can't setLang() if cookieConsent isn't true!")
-  }
   if (!supportedLanguages.has(lang)) {
     throw new TypeError(
         "\"lang\" parameter provided to setLang() must be a supported language!",
@@ -116,9 +122,12 @@ async function setLangClientSide(
   }
   document.documentElement.lang = lang
   console.log(`setLang: setting language to "${lang}"...`)
-  webStorage.set("lang", lang)
-  setCookie("lang", lang)
-  console.log(`setCookie: key "lang" was set to value "${lang}".`)
+  webStorage.set("lang", lang, "session")
+  if (cookieConsent) {
+    webStorage.set("lang", lang, "local")
+    setCookie("lang", lang)
+    console.log(`setCookie: key "lang" was set to value "${lang}".`)
+  }
 }
 
 /**

@@ -36,14 +36,26 @@ async function getCookieConsentClientSide(): Promise<CookieConsent> {
     )
   }
   // 1. Reading localStorage
-  const local = parseCookieConsent(window.localStorage.cookieConsent)
-  if (local != null) {
+  let cookieConsent
+  if (
+    (cookieConsent = parseCookieConsent(window.localStorage.cookieConsent)) !=
+    null
+  ) {
     console.log(
-        `getCookieConsentClientSide: returning "${local}" based on item in localStorage.`,
+        `getCookieConsentClientSide: returning "${cookieConsent}" based on item in localStorage.`,
     )
   }
-  // 2. Returning that cookie consent is neither true or false
-  return local
+  // 2. Reading sessionStorage
+  if (
+    (cookieConsent = parseCookieConsent(window.sessionStorage.cookieConsent)) !=
+    null
+  ) {
+    console.log(
+        `getCookieConsentClientSide: returning "${cookieConsent}" based on item in sessionStorage.`,
+    )
+  }
+  // 3. Returning that cookie consent is neither true or false
+  return cookieConsent
 }
 
 async function setCookieConsentClientSide(
@@ -55,8 +67,9 @@ async function setCookieConsentClientSide(
   console.log(
       `setCookieConsent: setting cookie consent to "${valueAsString}"...`,
   )
+  webStorage.set("cookieConsent", valueAsString, "session")
   if (value) {
-    webStorage.set("cookieConsent", valueAsString)
+    webStorage.set("cookieConsent", valueAsString, "local")
     setCookie("cookieConsent", valueAsString)
     console.log(`setCookie: key "theme" was set to value "${valueAsString}".`)
   } else {
